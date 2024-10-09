@@ -3,9 +3,6 @@ from .ORGaNICs2D import ORGaNICs2D
 from gaussian_rect.utils.util_funs import dynm_fun
 import os
 
-os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
-device = torch.device("cpu")
-
 
 class ORGaNICs2Dgeneral(ORGaNICs2D):
     def __init__(self, 
@@ -86,13 +83,17 @@ class ORGaNICs2Dgeneral(ORGaNICs2D):
             self._tauY = torch.tensor([0.002])
 
         """Make the jacobian"""
-        if run_jacobian:
-            tau_min = min(torch.min(self.tauA), torch.min(self.tauY))
-            tau_max= max(torch.max(self.tauA), torch.max(self.tauY))
-            time = tau_max * 200
-            dt = 0.05 * tau_min
-            points = int(time / dt)
-            _ = self.jacobian_autograd(time=time, points=points, method=method)
+        try:
+            if run_jacobian:
+                tau_min = min(torch.min(self.tauA), torch.min(self.tauY))
+                tau_max= max(torch.max(self.tauA), torch.max(self.tauY))
+                time = tau_max * 200
+                dt = 0.05 * tau_min
+                points = int(time / dt)
+                _ = self.jacobian_autograd(time=time, points=points, method=method)
+        except Exception as e:
+            print(e)
+            return e
         return None
     
     def make_Ly(self, t, x):
