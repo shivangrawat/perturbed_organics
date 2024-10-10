@@ -92,8 +92,9 @@ class ORGaNICs2Dgeneral(ORGaNICs2D):
                 points = int(time / dt)
                 _ = self.jacobian_autograd(time=time, points=points, method=method)
         except Exception as e:
-            print(e)
+            # print(e)
             return e
+
         return None
     
     def make_Ly(self, t, x):
