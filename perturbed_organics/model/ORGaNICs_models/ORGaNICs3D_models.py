@@ -1,8 +1,8 @@
 import torch
 from .ORGaNICs3D import ORGaNICs3D
-from gaussian_rect.utils.util_funs import dynm_fun
-from gaussian_rect.spectrum_general.sim_spectrum import sim_solution
-from gaussian_rect.utils.util_funs import dynm_fun, make_spike_train
+from perturbed_organics.utils.util_funs import dynm_fun
+from perturbed_organics.spectrum_general.sim_spectrum import sim_solution
+from perturbed_organics.utils.util_funs import dynm_fun, make_spike_train
 import os
 
 

@@ -3,7 +3,7 @@ import torch
 import matplotlib.pyplot as plt
 from torchdiffeq import odeint
 from torchsde import sdeint
-from gaussian_rect.utils.simulation_class import SDE, SDE_mul, SDE_cor_mul
+from perturbed_organics.utils.simulation_class import SDE, SDE_mul, SDE_cor_mul
 import scipy.signal
 
 

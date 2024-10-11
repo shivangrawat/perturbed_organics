@@ -1,6 +1,6 @@
 import torch
 from .ORGaNICs import ORGaNICs
-from gaussian_rect.utils.util_funs import dynm_fun
+from perturbed_organics.utils.util_funs import dynm_fun
 import os
 
 

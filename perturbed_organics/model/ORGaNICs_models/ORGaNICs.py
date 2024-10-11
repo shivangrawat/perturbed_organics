@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import sympy as sp
 import math
-from gaussian_rect.model._dyn_models import _dyn_models
+from perturbed_organics.model._dyn_models import _dyn_models
 import os
 
 

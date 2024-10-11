@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import torch
 from scipy import linalg
 from torch.func import jacrev
-from gaussian_rect.spectrum_general.sim_spectrum import sim_solution
+from perturbed_organics.spectrum_general.sim_spectrum import sim_solution
 
 
 class _dyn_models(ABC):
