@@ -74,13 +74,13 @@ class _dyn_models(ABC):
     def _dynamical_fun(self, t, x):
         pass
 
-    def jacobian_autograd(self, time=1, points=10000, method="euler", ss=None):
+    def jacobian_autograd(self, time=1, points=10000, method="euler", ss=None, initial_sim=None):
         """
         Calculates the Jacobian of the dynamical system using torch autograd.
         """
         if ss is None:
             sim_obj = sim_solution(self)
-            ss = sim_obj.steady_state(time=time, points=points, method=method)
+            ss = sim_obj.steady_state(time=time, points=points, method=method, y0=initial_sim)
         J = jacrev(self._dynamical_fun, argnums=1)(torch.tensor([0]), ss)
         self.J = J
         self.ss = ss

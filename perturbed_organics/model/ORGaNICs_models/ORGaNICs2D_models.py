@@ -15,6 +15,7 @@ class ORGaNICs2Dgeneral(ORGaNICs2D):
                  tauA=None,
                  tauY=None,
                  z=None,
+                 initial_sim=None,
                  method="euler",
                  run_jacobian=True):
         super().__init__(params)
@@ -37,14 +38,14 @@ class ORGaNICs2Dgeneral(ORGaNICs2D):
 
         """Initialize the circuit"""
         self.dim = self.calculate_dim()
-        self.initialize_circuit(method=method, run_jacobian=run_jacobian)
+        self.initialize_circuit(method=method, initial_sim=initial_sim, run_jacobian=run_jacobian)
         self.make_noise_mats()
     
     @property
     def b1(self):
         return self._b1
 
-    def initialize_circuit(self, method="euler", run_jacobian=True):
+    def initialize_circuit(self, method="euler", initial_sim=None, run_jacobian=True):
         """
         This function makes the input stimulus, the weight matrices and the jacobian
         corresponding to the system.
@@ -90,7 +91,7 @@ class ORGaNICs2Dgeneral(ORGaNICs2D):
                 time = tau_max * 200
                 dt = 0.05 * tau_min
                 points = int(time / dt)
-                _ = self.jacobian_autograd(time=time, points=points, method=method)
+                _ = self.jacobian_autograd(time=time, points=points, method=method, initial_sim=initial_sim)
         except Exception as e:
             # print(e)
             return e
