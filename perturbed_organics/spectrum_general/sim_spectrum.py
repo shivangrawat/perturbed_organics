@@ -25,10 +25,8 @@ class sim_solution:
         dynamical system over time.
         :return: The steady-state circuit. Raises an error if steady-state is not found.
         """
-        print('hi')
         t = self.time_points(time, points)
         sim = self.simulate(t, atol, rtol, y0=y0, method=method)
-        print('hi')
         # find if steady state is reached in a given tolerance else raise exception
         if torch.any(torch.isnan(sim[-1, :])):
             raise Exception("The simulation has NaNs")
