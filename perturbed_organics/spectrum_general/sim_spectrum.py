@@ -17,6 +17,7 @@ class sim_solution:
         """Object containing dynamical function to be used for simulation"""
         self.obj = obj
         self.noise_type = obj.noise_type
+        self.device = obj.device
 
     def steady_state(self, time=1, points=10000, tol=1e-5, atol=1e-8, rtol=1e-9, y0=None, method='euler'):
         """
@@ -24,8 +25,10 @@ class sim_solution:
         dynamical system over time.
         :return: The steady-state circuit. Raises an error if steady-state is not found.
         """
-        t = self.new_method(time, points)
+        print('hi')
+        t = self.time_points(time, points)
         sim = self.simulate(t, atol, rtol, y0=y0, method=method)
+        print('hi')
         # find if steady state is reached in a given tolerance else raise exception
         if torch.any(torch.isnan(sim[-1, :])):
             raise Exception("The simulation has NaNs")
@@ -34,9 +37,8 @@ class sim_solution:
         else:
             raise Exception("The simulation did not converge.")
 
-    def new_method(self, time, points):
-        t = torch.linspace(0, time, points)
-        return t
+    def time_points(self, time, points):
+        return torch.linspace(0, time, points, device=self.device)
 
     def simulate(self, t, atol=1e-8, rtol=1e-9, y0=None, method='euler'):
         """
@@ -45,7 +47,7 @@ class sim_solution:
         :return: The state of the circuit over time
         """
         if y0 is None:
-            y0 = torch.zeros(self.obj.dim) + 1e-2
+            y0 = torch.zeros(self.obj.dim, device=self.device) + 1e-2
         return odeint(self.obj._dynamical_fun, y0, t, method=method, atol=atol, rtol=rtol)
 
     def simulate_sde(self, t, n_points=int(1e5), time=10, dt=1e-4, save=True):
@@ -86,7 +88,7 @@ class sim_solution:
         2. When you sample all points from the simulation of a single trial.
         :return: The steady-state variance of the circuit.
         """
-        t = torch.linspace(0, time, n_points)
+        t = self.time_points(time, n_points)
         x0 = self.steady_state(time=time, points=n_points).unsqueeze(0)
         if self.noise_type == "additive":
             sde = SDE(self.obj)
@@ -95,7 +97,7 @@ class sim_solution:
         else:
             raise Exception("Noise type not recognized")
 
-        final_sol = torch.zeros(n_trials, self.obj.dim)
+        final_sol = torch.zeros(n_trials, self.obj.dim, device=self.device)
         for i in range(n_trials):
             with torch.no_grad():
                 sol_sde = sdeint(sde, x0, t, dt=dt, method='euler')
@@ -152,7 +154,7 @@ class sim_solution:
         ith and jth variable.
         """
         i = 0 if i is None else i
-        t = torch.linspace(0, time, n_points)
+        t = self.time_points(time, n_points)
 
         sol_sde = self.simulate_sde(t, n_points, time, dt)
 

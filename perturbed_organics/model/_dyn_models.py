@@ -81,7 +81,7 @@ class _dyn_models(ABC):
         if ss is None:
             sim_obj = sim_solution(self)
             ss = sim_obj.steady_state(time=time, points=points, method=method, y0=initial_sim)
-        J = jacrev(self._dynamical_fun, argnums=1)(torch.tensor([0]), ss)
+        J = jacrev(self._dynamical_fun, argnums=1)(torch.tensor([0], device=self.device), ss)
         self.J = J
         self.ss = ss
         return J, ss

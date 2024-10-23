@@ -20,18 +20,18 @@ class ORGaNICs2Dgeneral(ORGaNICs2D):
                  run_jacobian=True):
         super().__init__(params)
 
-        self._b0 = b0
-        self._b1 = b1
+        self._b0 = b0.to(self.device)
+        self._b1 = b1.to(self.device)
 
-        self._sigma = sigma
+        self._sigma = sigma.to(self.device)
 
-        self._tauA = tauA
-        self._tauY = tauY
+        self._tauA = tauA.to(self.device)
+        self._tauY = tauY.to(self.device)
 
-        self.Wyy = Wyy
-        self.Way = Way
+        self.Wyy = Wyy.to(self.device)
+        self.Way = Way.to(self.device)
 
-        self.z = z
+        self.z = z.to(self.device)
 
         self.method = method
         self.run_jacobian = run_jacobian
@@ -54,34 +54,34 @@ class ORGaNICs2Dgeneral(ORGaNICs2D):
 
         """Make the feedforward and recurrent weight matrices"""
         if self.Wyy is None:
-            self.Wyy = torch.eye(self.Ny)
+            self.Wyy = torch.eye(self.Ny, device=self.device)
 
         """Make the input stimulus"""
         if self.z is None:
-            self.z = torch.zeros(self.Ny)
+            self.z = torch.zeros(self.Ny, device=self.device)
             self.z[self.Ny // 2] = 1.0
 
         """Make the normalization matrix"""
         if self.Way is None:
-            self.Way = torch.ones(self.Na, self.Ny)
+            self.Way = torch.ones(self.Na, self.Ny, device=self.device)
 
         """Make the attention gains"""
         if self.b0 is None:
-            self._b0 = 0.5 * torch.ones(self.Ny)
+            self._b0 = 0.5 * torch.ones(self.Ny, device=self.device)
 
         if self.b1 is None:
             self._b1 = self.b0
 
         """Make the contrast gain"""
         if self.sigma is None:
-            self._sigma = 0.1
+            self._sigma = torch.tensor([0.1], device=self.device)
 
         """Make the time constants"""
         if self.tauA is None:
-            self._tauA = torch.tensor([0.001])
+            self._tauA = torch.tensor([0.001], device=self.device)
         
         if self.tauY is None:
-            self._tauY = torch.tensor([0.002])
+            self._tauY = torch.tensor([0.002], device=self.device)
 
         """Make the jacobian"""
         try:
@@ -105,14 +105,14 @@ class ORGaNICs2Dgeneral(ORGaNICs2D):
         """
         Calculates the noise matrix.
         """
-        return self.eta * torch.eye(self.dim)
+        return self.eta * torch.eye(self.dim, device=self.device)
 
     def make_D(self):
         """
         This function creates the D matrix for the noise.
         :return: The D matrix
         """
-        D = torch.zeros(self.dim)
+        D = torch.zeros(self.dim, device=self.device)
         D[0 : self.Ny] = 1 / self.tauY
         D[self.Ny : (self.Ny + self.Na)] = 1 / self.tauA
         return torch.diag(D)
