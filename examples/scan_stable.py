@@ -1,6 +1,3 @@
-import sys
-sys.path.append('/home/sr6364/python_scripts/perturbed_organics')
-
 import torch
 import matplotlib.pyplot as plt
 import torch.nn.functional as F

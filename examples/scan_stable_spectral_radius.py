@@ -1,6 +1,3 @@
-import sys
-sys.path.append('/home/sr6364/python_scripts/perturbed_organics')
-
 import torch
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
@@ -60,16 +57,20 @@ tauY = 0.002 + 0 * torch.abs(torch.randn(N) * 0.001)
 Way = torch.ones(N, N)
 
 def sample_sparse_matrix(N, c, delta, mu):
-    mask = torch.bernoulli(torch.full((N, N), c / N)).triu()
-    values = torch.normal(mu / c, delta / math.sqrt(c), (N, N))
-    upper_triangular = values * mask
-    symmetric_matrix = upper_triangular + upper_triangular.T - torch.diag(torch.diag(upper_triangular))
-    return symmetric_matrix
+    mask = torch.bernoulli(torch.full((N, N), c / N))
+    values = torch.eye(N) + torch.normal(mu, 1.0, (N, N))
+    sparse_matrix = values * mask
+    eigvals = torch.linalg.eigvals(sparse_matrix)
+    spectral_radius = torch.max(torch.abs(eigvals))
+
+    scaling_factor = delta / spectral_radius
+    sparse_matrix *= scaling_factor
+    return sparse_matrix
 
 
 # Define the scan parameters
-delta_range = np.linspace(0, 1, num_delta)
-gamma_range = np.linspace(0.01, 1, num_gamma)
+delta_range = np.linspace(0, 5, num_delta)
+gamma_range = np.linspace(0.01, 2, num_gamma)
 
 # define the quantities that we'll calculate
 bool_stable = torch.zeros((num_delta, num_gamma, num_trials), dtype=torch.bool)
@@ -78,14 +79,14 @@ def run_trial(i, j, k, delta, gamma):
     # Initialize variables for the trial
 
     # # make input delocalized
-    # z = torch.ones(N)
-    # z = z / torch.norm(z) * gamma
+    z = torch.ones(N)
+    z = z / torch.norm(z) * gamma
 
     # make input one hot
-    z = torch.zeros(N)
-    z[0] = gamma
+    # z = torch.zeros(N)
+    # z[0] = gamma
 
-    Wyy = torch.eye(N) + sample_sparse_matrix(N, c, delta, mu)
+    Wyy = sample_sparse_matrix(N, c, delta, mu)
 
     # Start the simulation from the normalization fixed point
     a_s = sigma ** 2 * b0 ** 2 + Way @ (b1 * z) ** 2
