@@ -48,9 +48,9 @@ params = {
     'eta': 0.02,
     'noise_type': 'additive'
 }
-b0 = 0.5 * torch.ones(N)
-b1 = 0.5 * torch.ones(N)
-sigma = torch.tensor([0.1])
+b0 = 0.8 * torch.ones(N)
+b1 = 0.8 * torch.ones(N)
+sigma = torch.tensor([1.0])
 tauA = 0.002 + 0 * torch.abs(torch.randn(N) * 0.001)
 tauY = 0.002 + 0 * torch.abs(torch.randn(N) * 0.001)
 # Wyy = torch.eye(N)
@@ -69,8 +69,8 @@ def sample_sparse_matrix(N, c, delta, mu):
 
 
 # Define the scan parameters
-delta_range = np.linspace(0, 5, num_delta)
-gamma_range = np.linspace(0.01, 2, num_gamma)
+delta_range = np.linspace(0, 10, num_delta)
+gamma_range = np.linspace(0.01, 3, num_gamma)
 
 # define the quantities that we'll calculate
 bool_stable = torch.zeros((num_delta, num_gamma, num_trials), dtype=torch.bool)
