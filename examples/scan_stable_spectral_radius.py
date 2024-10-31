@@ -49,9 +49,9 @@ params = {
     'noise_type': 'additive'
 }
 b0 = 0.8 * torch.ones(N)
-b1 = 0.8 * torch.ones(N)
+b1 = 0.4 * torch.ones(N)
 sigma = torch.tensor([1.0])
-tauA = 0.002 + 0 * torch.abs(torch.randn(N) * 0.001)
+tauA = 0.02 + 0 * torch.abs(torch.randn(N) * 0.001)
 tauY = 0.002 + 0 * torch.abs(torch.randn(N) * 0.001)
 # Wyy = torch.eye(N)
 Way = torch.ones(N, N)

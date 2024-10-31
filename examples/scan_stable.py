@@ -65,24 +65,29 @@ def sample_sparse_matrix(N, c, delta, mu):
 
 
 # Define the scan parameters
-delta_range = np.linspace(0, 1, num_delta)
-gamma_range = np.linspace(0.01, 1, num_gamma)
+delta_range = np.linspace(0, 10, num_delta)
+gamma_range = np.linspace(0.01, 5, num_gamma)
 
 # define the quantities that we'll calculate
+spectral_radius = torch.zeros((num_delta, num_gamma, num_trials), dtype=torch.float32)
 bool_stable = torch.zeros((num_delta, num_gamma, num_trials), dtype=torch.bool)
 
 def run_trial(i, j, k, delta, gamma):
     # Initialize variables for the trial
 
     # # make input delocalized
-    # z = torch.ones(N)
-    # z = z / torch.norm(z) * gamma
+    z = torch.ones(N)
+    z = z / torch.norm(z) * gamma
 
     # make input one hot
-    z = torch.zeros(N)
-    z[0] = gamma
+    # z = torch.zeros(N)
+    # z[0] = gamma
 
     Wyy = torch.eye(N) + sample_sparse_matrix(N, c, delta, mu)
+
+    # find the spectral radius of Wyy 
+    eigvals = torch.linalg.eigvals(Wyy)
+    spectral_radius = torch.max(torch.abs(eigvals))
 
     # Start the simulation from the normalization fixed point
     a_s = sigma ** 2 * b0 ** 2 + Way @ (b1 * z) ** 2
@@ -96,9 +101,9 @@ def run_trial(i, j, k, delta, gamma):
         initial_sim=initial_sim, run_jacobian=True
     )
     if model.J is None:
-        return False
+        return (False, spectral_radius)
     else:
-        return True
+        return (True, spectral_radius)
 
 results = Parallel(n_jobs=-1, verbose=10)(
     delayed(run_trial)(i, j, k, delta, gamma)
@@ -110,7 +115,8 @@ results = Parallel(n_jobs=-1, verbose=10)(
 for idx, (i, j, k) in enumerate(
     (i, j, k) for i in range(num_delta) for j in range(num_gamma) for k in range(num_trials)
 ):
-    bool_stable[i, j, k] = results[idx]
+    bool_stable[i, j, k] = results[idx][0]
+    spectral_radius[i, j, k] = results[idx][1]
 
 # create a folder in ..data/ to save the results
 folder_name = model_name + '_N_{}_c_{}_mu_{}_num_delta_{}_num_gamma_{}_num_trials_{}'.format(N, c, mu, num_delta, num_gamma, num_trials)
@@ -120,6 +126,7 @@ if not os.path.exists(path):
     os.makedirs(path)
 
 torch.save(bool_stable, os.path.join(path, 'bool_stable.pt'))
+torch.save(spectral_radius, os.path.join(path, 'spectral_radius.pt'))
 
 
 # plot the circuit
@@ -151,4 +158,26 @@ plt.yticks(fontsize=20)
 colorbar.set_label("Percent Stable Circuits", fontsize=20)
 # save the figure in svg
 save_fig_path = os.path.join(path, 'percent_stable_circuits.svg')
+plt.savefig(save_fig_path)
+
+# spectral radius plotting
+spectral_radius_mean = spectral_radius.mean(dim=2)
+plt.figure(figsize=(12, 10))
+plt.imshow(spectral_radius_mean, extent=[gamma_range.min(), gamma_range.max(), delta_range.min(), delta_range.max()],
+           origin='lower', aspect='auto', cmap=cmap)
+colorbar = plt.colorbar(label="Mean Spectral Radius", fraction=0.046, pad=0.04)
+colorbar.ax.tick_params(labelsize=14)
+
+# Set the labels and title
+plt.xlabel('Contrast', fontsize=22)
+plt.ylabel(r'$\Delta$', fontsize=22)
+plt.title("Phase Diagram: Mean Spectral Radius", fontsize=20)
+
+# Increase tick label size
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
+colorbar.set_label("Mean Spectral Radius", fontsize=20)
+
+# Save the figure as SVG
+save_fig_path = os.path.join(path, 'mean_spectral_radius.svg')
 plt.savefig(save_fig_path)
