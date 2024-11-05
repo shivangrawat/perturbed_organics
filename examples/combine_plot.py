@@ -2,13 +2,18 @@ import torch
 import os
 import json
 import numpy as np
+import argparse
 import matplotlib.pyplot as plt
 
 
 cmap = 'viridis'
 
+parser = argparse.ArgumentParser(description="Combine the results from the different job arrays")
+parser.add_argument("--folder_name", type=str, default="", help="Name of the folder")
+args = parser.parse_args()
+
 # Define the path and folder name
-folder_name = 'localized_N_100_c_3_mu_0.0_num_delta_50_num_input_50_num_trials_10_b0_0.5_b1_0.5'
+folder_name = args.folder_name
 path = os.path.join('..', 'data', folder_name)
 
 # Load parameters from the JSON file

@@ -9,8 +9,11 @@ default_params = {
     # 'MODEL_NAME': 'delocalized',
     # 'MODEL_NAME': 'random',
     # 'MODEL_NAME': 'gaussian',
+    # 'MATRIX_TYPE': 'goe',
+    'MATRIX_TYPE': 'goe_symmetric',
+    # 'MATRIX_TYPE': 'power_law',
     'N': 100,
-    'c': 3,
+    's': 3,
     'mu': 0.0,
     'sigma': 0.1,
     'b0': 0.5,
@@ -18,8 +21,8 @@ default_params = {
     'tauA': 0.002,
     'tauY': 0.002,
     'num_trials': 10,
-    'num_delta': 50,
-    'num_input': 50,
+    'num_delta': 20,
+    'num_input': 20,
     'max_delta': 5.0,
     'max_input': 5.0,
     'NUM_TASKS': 10,
@@ -43,12 +46,12 @@ for param in default_params:
 
 args = parser.parse_args()
 
-# Create directory based on MODEL_NAME if it doesn't exist
-output_dir = args.MODEL_NAME
+# Create directory based on MODEL_NAME and matrix type if it doesn't exist
+output_dir = args.MODEL_NAME + '_' + args.MATRIX_TYPE
 os.makedirs(output_dir, exist_ok=True)
 
 # Generate the filename based on selected parameters
-filename = os.path.join(output_dir, f"job_submission_{args.MODEL_NAME}_N{args.N}_c{args.c}_mu{args.mu}.sh")
+filename = os.path.join(output_dir, f"job_{args.MODEL_NAME}_{args.MATRIX_TYPE}_N{args.N}_s{args.s}_mu{args.mu}.sh")
 
 
 # Now generate the job submission script
@@ -70,8 +73,9 @@ singularity exec --overlay /scratch/sr6364/overlay-files/overlay-50G-10M.ext3:ro
 cd /home/sr6364/python_scripts/perturbed_organics/examples; \\
 python {args.SCRIPT_NAME} \\
     --MODEL_NAME {args.MODEL_NAME} \\
+    --MATRIX_TYPE {args.MATRIX_TYPE} \\
     --N {args.N} \\
-    --c {args.c} \\
+    --s {args.s} \\
     --mu {args.mu} \\
     --sigma {args.sigma} \\
     --b0 {args.b0} \\
@@ -84,7 +88,7 @@ python {args.SCRIPT_NAME} \\
     --max_delta {args.max_delta} \\
     --max_input {args.max_input} \\
     --TASK_ID ${{SLURM_ARRAY_TASK_ID}} \\
-    --NUM_TASKS {args.NUM_TASKS}'
+    --NUM_TASKS {args.NUM_TASKS} '
 """
 
 # 
@@ -93,3 +97,31 @@ python {args.SCRIPT_NAME} \\
 with open(filename, 'w') as f:
     f.write(job_script)
 
+
+# Now we create the combine script
+# define the folder name based on the parameters
+folder_name = f"{args.MODEL_NAME}_{args.MATRIX_TYPE}_N_{args.N}_s_{args.s}_mu_{args.mu}_num_delta_{args.num_delta}_num_input_{args.num_input}_num_trials_{args.num_trials}_b0_{args.b0}_b1_{args.b1}"
+
+
+combine_script = f"""#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --time=0:05:00
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=2
+#SBATCH --job-name=combine_plot
+#SBATCH --mem=32GB
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=sr6364@nyu.edu
+#SBATCH --output=job.%j.out
+
+singularity exec --overlay /scratch/sr6364/overlay-files/overlay-50G-10M.ext3:ro /scratch/work/public/singularity/cuda11.8.86-cudnn8.7-devel-ubuntu22.04.2.sif /bin/bash -c \
+'source /ext3/env.sh; conda activate feed-r-conda; cd /home/sr6364/python_scripts/perturbed_organics/examples; python combine_plot.py \\
+--folder_name {folder_name} '
+"""
+
+filename = os.path.join(output_dir, f"combine_plot_{args.MODEL_NAME}_{args.MATRIX_TYPE}_N{args.N}_s{args.s}_mu{args.mu}.sh")
+
+# save the file
+# Write the job script to a file
+with open(filename, 'w') as f:
+    f.write(combine_script)
