@@ -15,9 +15,9 @@ from matplotlib import colors
 from scipy.optimize import fsolve, curve_fit
 from scipy import integrate
 import warnings
+import shutil
+import json
 
-
-cmap = 'viridis'
 
 # Import the arguments
 parser = argparse.ArgumentParser(description="Sparse Matrix Stability Scan")
@@ -51,6 +51,8 @@ args = parser.parse_args()
 task_id = args.TASK_ID
 num_tasks = args.NUM_TASKS
 
+print(f"Task ID: {task_id}")
+
 # arguments of the model parameters
 model_name = args.MODEL_NAME
 N = args.N
@@ -63,6 +65,44 @@ num_input = args.num_input
 num_trials = args.num_trials
 max_input = args.max_input
 max_delta = args.max_delta
+
+# Define the scan parameters
+delta_range = np.linspace(0, max_delta, num_delta)
+input_range = np.linspace(0.01, max_input, num_input)
+
+# define the path of the folder to save the results in
+folder_name = model_name + '_N_{}_c_{}_mu_{}_num_delta_{}_num_input_{}_num_trials_{}_b0_{}_b1_{}'.format(N, c, mu, num_delta, num_input, num_trials, args.b0, args.b1)
+path = os.path.join('..', 'data', folder_name)
+
+# Save parameters only if task_id == 0 to avoid race conditions
+if task_id == 0:
+    if os.path.exists(path):
+        shutil.rmtree(path)
+    os.makedirs(path)
+    # Save parameters to a JSON file in the folder
+    params_to_save = {
+        'model_name': model_name,
+        'N': N,
+        'c': c,
+        'mu': mu,
+        'sigma': args.sigma,
+        'b0': args.b0,
+        'b1': args.b1,
+        'tauA': args.tauA,
+        'tauY': args.tauY,
+        'num_trials': num_trials,
+        'num_delta': num_delta,
+        'num_input': num_input,
+        'max_delta': max_delta,
+        'max_input': max_input,
+        'delta_range': delta_range.tolist(),
+        'input_range': input_range.tolist(),
+        'num_tasks': num_tasks
+    }
+    param_file_path = os.path.join(path, 'parameters.json')
+    print('Saving the parameter file')
+    with open(param_file_path, 'w') as f:
+        json.dump(params_to_save, f, indent=4)
 
 
 device = torch.device("cpu")
@@ -91,20 +131,34 @@ def sample_sparse_matrix(N, c, delta, mu):
     return symmetric_matrix
 
 
-# Define the scan parameters
-delta_range = np.linspace(0, max_delta, num_delta)
-input_range = np.linspace(0.01, max_input, num_input)
+# Create list of parameter combinations
+param_combinations = [(i, j) for i in range(num_delta) for j in range(num_input)]
 
-# define the quantities that we'll calculate
-spectral_radius = torch.zeros((num_delta, num_input, num_trials), dtype=torch.float32)
-bool_stable = torch.zeros((num_delta, num_input, num_trials), dtype=torch.bool)
+# Split parameter combinations among tasks
+param_chunks = np.array_split(param_combinations, num_tasks)
+my_params = param_chunks[task_id]
+
+
+def make_input_drive(input_type, input_norm):
+    z = torch.zeros(N) + 1e-3
+    if input_type == 'localized':
+        z[0] = input_norm
+    elif input_type == 'delocalized':
+        z = torch.ones(N)
+        z = z / torch.norm(z) * input_norm
+    elif input_type == 'random':
+        z = torch.randn(N)
+        z = z / torch.norm(z) * input_norm
+    elif input_type == 'gaussian':
+        z = torch.exp(-torch.arange(N).float() ** 2 / (2 * N / 10))
+        z = z / torch.norm(z) * input_norm
+    return z
+
 
 def run_trial(i, j, k, delta, input):
     # Initialize variables for the trial
 
-    # make input one hot
-    z = torch.zeros(N) + 1e-3
-    z[0] = input
+    z = make_input_drive(model_name, input)
 
     Wyy = torch.eye(N) + sample_sparse_matrix(N, c, delta, mu)
 
@@ -128,79 +182,30 @@ def run_trial(i, j, k, delta, input):
     else:
         return (True, spectral_radius)
 
+def run_trial_and_collect(i, j, k):
+    delta = delta_range[i]
+    input = input_range[j]
+    stable, spec_radius = run_trial(i, j, k, delta, input)
+    return (i, j, k, stable, spec_radius)
+
 results = Parallel(n_jobs=-1, verbose=10)(
-    delayed(run_trial)(i, j, k, delta, input)
-    for i, delta in enumerate(delta_range)
-    for j, input in enumerate(input_range)
+    delayed(run_trial_and_collect)(i, j, k)
+    for i, j in my_params
     for k in range(num_trials)
 )
 
-for idx, (i, j, k) in enumerate(
-    (i, j, k) for i in range(num_delta) for j in range(num_input) for k in range(num_trials)
-):
-    bool_stable[i, j, k] = results[idx][0]
-    spectral_radius[i, j, k] = results[idx][1]
+# Collect and save partial results
+bool_stable_task = torch.full((num_delta, num_input, num_trials), fill_value=-1, dtype=torch.int8)
+spectral_radius_task = torch.full((num_delta, num_input, num_trials), fill_value=float('nan'), dtype=torch.float32)
 
-# create a folder in ..data/ to save the results
-folder_name = model_name + '_N_{}_c_{}_mu_{}_num_delta_{}_num_input_{}_num_trials_{}_b0_{}_b1_{}'.format(N, c, mu, num_delta, num_input, num_trials, args.b0, args.b1)
-path = os.path.join('..', 'data', folder_name)
+# Update the results arrays
+for res in results:
+    i, j, k, stable, spec_radius = res
+    bool_stable_task[i, j, k] = int(stable)
+    spectral_radius_task[i, j, k] = spec_radius
 
-if not os.path.exists(path):
-    os.makedirs(path)
-
-torch.save(bool_stable, os.path.join(path, 'bool_stable.pt'))
-torch.save(spectral_radius, os.path.join(path, 'spectral_radius.pt'))
+# Save partial results
+torch.save(bool_stable_task, os.path.join(path, f'bool_stable_task_{task_id}.pt'))
+torch.save(spectral_radius_task, os.path.join(path, f'spectral_radius_task_{task_id}.pt'))
 
 
-# plot the circuit
-percent_stable = bool_stable.float().mean(dim=2) * 100
-
-# Plot the heatmap
-plt.figure(figsize=(12, 10))
-plt.imshow(percent_stable, extent=[input_range.min(), input_range.max(), delta_range.min(), delta_range.max()],
-           origin='lower', aspect='auto', cmap='viridis')
-colorbar = plt.colorbar(label="Percent Stable Circuits", fraction=0.046, pad=0.04)
-colorbar.ax.tick_params(labelsize=14)
-
-# plotting curve from flaviano
-# plt.scatter(data_sim[:, 1], data_sim[:, 0], c='black', edgecolor='black', s=50, label="Simulation")
-# plt.scatter(data_y[:, 0], data_y[:, 1], c='cyan', edgecolor='black', s=50, label="y-theory")
-# plt.scatter(data_a[:, 0], data_a[:, 1], c='red', edgecolor='black', s=50, label="a-theory")
-
-# add legend
-plt.legend(fontsize=20, loc='lower right')
-
-# Set font sizes
-plt.xlabel(r'Contrast', fontsize=22)
-plt.ylabel(r'$\Delta$', fontsize=22)
-plt.title("Phase Diagram: Percent Stable Circuits", fontsize=20)
-
-# Increase tick label size
-plt.xticks(fontsize=20)
-plt.yticks(fontsize=20)
-colorbar.set_label("Percent Stable Circuits", fontsize=20)
-# save the figure in svg
-save_fig_path = os.path.join(path, 'percent_stable_circuits.svg')
-plt.savefig(save_fig_path)
-
-# spectral radius plotting
-spectral_radius_mean = spectral_radius.mean(dim=2)
-plt.figure(figsize=(12, 10))
-plt.imshow(spectral_radius_mean, extent=[input_range.min(), input_range.max(), delta_range.min(), delta_range.max()],
-           origin='lower', aspect='auto', cmap=cmap)
-colorbar = plt.colorbar(label="Mean Spectral Radius", fraction=0.046, pad=0.04)
-colorbar.ax.tick_params(labelsize=14)
-
-# Set the labels and title
-plt.xlabel('Input norm', fontsize=22)
-plt.ylabel(r'$\Delta$', fontsize=22)
-plt.title("Phase Diagram: Mean Spectral Radius", fontsize=20)
-
-# Increase tick label size
-plt.xticks(fontsize=20)
-plt.yticks(fontsize=20)
-colorbar.set_label("Mean Spectral Radius", fontsize=20)
-
-# Save the figure as SVG
-save_fig_path = os.path.join(path, 'mean_spectral_radius.svg')
-plt.savefig(save_fig_path)
