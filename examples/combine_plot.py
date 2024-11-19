@@ -14,7 +14,7 @@ args = parser.parse_args()
 
 # Define the path and folder name
 folder_name = args.folder_name
-path = os.path.join('..', 'data', folder_name)
+path = os.path.join('/scratch/sr6364/perturbed_organics', 'data', folder_name)
 
 # Load parameters from the JSON file
 param_file_path = os.path.join(path, 'parameters.json')

@@ -92,7 +92,7 @@ folder_name = (
         N, s, mu, num_delta, num_input, num_trials, args.b0, args.b1
     )
 )
-path = os.path.join("..", "data", folder_name)
+path = os.path.join("/scratch/sr6364/perturbed_organics", "data", folder_name)
 
 # Save parameters only if task_id == 0 to avoid race conditions
 if task_id == 0:
