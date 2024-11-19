@@ -149,10 +149,10 @@ my_params = param_chunks[task_id]
 def run_trial(i, j, k, delta, input):
     # Initialize variables for the trial
 
-    z = utils.make_input_drive(N, model_name, input)
+    z = utils.make_input_drive(N=N, input_type=model_name, input_norm=input)
 
     Wyy = torch.eye(N) + utils.generate_matrix(
-        N, matrix_type=matrix_type, s=s, mu=mu, delta=delta
+        N=N, matrix_type=matrix_type, s=s, mu=mu, delta=delta
     )
 
     # find the spectral radius of Wyy
@@ -178,17 +178,18 @@ def run_trial(i, j, k, delta, input):
         initial_sim=initial_sim,
         run_jacobian=True,
     )
+
     if model.J is None:
-        return (False, spectral_radius)
+        return (False, spectral_radius, y_s, a_s, None, None)
     else:
-        return (True, spectral_radius)
+        return (True, spectral_radius, y_s, a_s, model.ss[0:N], model.ss[N:2*N])
 
 
 def run_trial_and_collect(i, j, k):
     delta = delta_range[i]
     input = input_range[j]
-    stable, spec_radius = run_trial(i, j, k, delta, input)
-    return (i, j, k, stable, spec_radius)
+    stable, spec_radius, y_s, a_s, y_s_actual, a_s_actual = run_trial(i, j, k, delta, input)
+    return (i, j, k, stable, spec_radius, y_s, a_s, y_s_actual, a_s_actual)
 
 
 results = Parallel(n_jobs=-1, verbose=2)(
@@ -205,14 +206,49 @@ spectral_radius_task = torch.full(
     (num_delta, num_input, num_trials), fill_value=float("nan"), dtype=torch.float32
 )
 
+norm_fixed_point_y_task = torch.full(
+    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float32
+)
+norm_fixed_point_a_task = torch.full(
+    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float32
+)
+
+actual_fixed_point_y_task = torch.full(
+    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float32
+)
+actual_fixed_point_a_task = torch.full(
+    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float32
+)
+
 # Update the results arrays
 for res in results:
-    i, j, k, stable, spec_radius = res
+    i, j, k, stable, spec_radius, y_s, a_s, y_s_actual, a_s_actual = res
     bool_stable_task[i, j, k] = int(stable)
     spectral_radius_task[i, j, k] = spec_radius
+    norm_fixed_point_y_task[i, j, k] = y_s
+    norm_fixed_point_a_task[i, j, k] = a_s
+    if y_s_actual is not None:
+        actual_fixed_point_y_task[i, j, k] = y_s_actual
+        actual_fixed_point_a_task[i, j, k] = a_s_actual
 
 # Save partial results
 torch.save(bool_stable_task, os.path.join(path, f"bool_stable_task_{task_id}.pt"))
 torch.save(
     spectral_radius_task, os.path.join(path, f"spectral_radius_task_{task_id}.pt")
+)
+torch.save(
+    norm_fixed_point_y_task,
+    os.path.join(path, f"norm_fixed_point_y_task_{task_id}.pt"),
+)
+torch.save(
+    norm_fixed_point_a_task,
+    os.path.join(path, f"norm_fixed_point_a_task_{task_id}.pt"),
+)
+torch.save(
+    actual_fixed_point_y_task,
+    os.path.join(path, f"actual_fixed_point_y_task_{task_id}.pt"),
+)
+torch.save(
+    actual_fixed_point_a_task,
+    os.path.join(path, f"actual_fixed_point_a_task_{task_id}.pt"),
 )

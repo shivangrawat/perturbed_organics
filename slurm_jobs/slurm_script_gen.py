@@ -5,53 +5,62 @@ import os
 
 # Define default parameters
 default_params = {
-    'MODEL_NAME': 'localized',
+    "MODEL_NAME": "localized",
     # 'MODEL_NAME': 'delocalized',
     # 'MODEL_NAME': 'random',
     # 'MODEL_NAME': 'gaussian',
     # 'MATRIX_TYPE': 'goe',
-    'MATRIX_TYPE': 'goe_symmetric',
+    "MATRIX_TYPE": "goe_symmetric",
     # 'MATRIX_TYPE': 'power_law',
-    'N': 100,
-    's': 3,
-    'mu': 0.0,
-    'sigma': 0.1,
-    'b0': 0.5,
-    'b1': 0.5,
-    'tauA': 0.002,
-    'tauY': 0.002,
-    'num_trials': 10,
-    'num_delta': 20,
-    'num_input': 20,
-    'max_delta': 5.0,
-    'max_input': 5.0,
-    'NUM_TASKS': 10,
-    'JOB_NAME': 'param_scan',
-    'TIME': '0:05:00',
-    'CPUS': 32,
-    'MEMORY': '32GB',
-    'EMAIL': 'sr6364@nyu.edu',
-    'SCRIPT_NAME': 'scan_stable.py'
+    "N": 100,
+    "s": 100,
+    "mu": 1.0,
+    "sigma": 0.1,
+    "b0": 0.5,
+    "b1": 0.5,
+    "tauA": 0.002,
+    "tauY": 0.002,
+    "num_trials": 10,
+    "num_delta": 50,
+    "num_input": 50,
+    "max_delta": 5.0,
+    "max_input": 5.0,
+    "NUM_TASKS": 10,
+    "JOB_NAME": "param_scan",
+    "TIME": "0:05:00",
+    "CPUS": 32,
+    "MEMORY": "32GB",
+    "EMAIL": "sr6364@nyu.edu",
+    "SCRIPT_NAME": "scan_stable.py",
 }
 
 # Set up argument parser
-parser = argparse.ArgumentParser(description='Generate SLURM job submission script.')
+parser = argparse.ArgumentParser(description="Generate SLURM job submission script.")
 
 # Add arguments for parameters you may want to change
 for param in default_params:
     if isinstance(default_params[param], bool):
-        parser.add_argument(f'--{param}', action='store_true', default=default_params[param])
+        parser.add_argument(
+            f"--{param}", action="store_true", default=default_params[param]
+        )
     else:
-        parser.add_argument(f'--{param}', type=type(default_params[param]), default=default_params[param])
+        parser.add_argument(
+            f"--{param}",
+            type=type(default_params[param]),
+            default=default_params[param],
+        )
 
 args = parser.parse_args()
 
 # Create directory based on MODEL_NAME and matrix type if it doesn't exist
-output_dir = args.MODEL_NAME + '_' + args.MATRIX_TYPE
+output_dir = args.MODEL_NAME + "_" + args.MATRIX_TYPE
 os.makedirs(output_dir, exist_ok=True)
 
 # Generate the filename based on selected parameters
-filename = os.path.join(output_dir, f"job_{args.MODEL_NAME}_{args.MATRIX_TYPE}_N{args.N}_s{args.s}_mu{args.mu}.sh")
+filename = os.path.join(
+    output_dir,
+    f"job_{args.MODEL_NAME}_{args.MATRIX_TYPE}_N{args.N}_s{args.s}_mu{args.mu}.sh",
+)
 
 
 # Now generate the job submission script
@@ -91,10 +100,9 @@ python {args.SCRIPT_NAME} \\
     --NUM_TASKS {args.NUM_TASKS} '
 """
 
-# 
 
 # Write the job script to a file
-with open(filename, 'w') as f:
+with open(filename, "w") as f:
     f.write(job_script)
 
 
@@ -119,9 +127,12 @@ singularity exec --overlay /scratch/sr6364/overlay-files/overlay-50G-10M.ext3:ro
 --folder_name {folder_name} '
 """
 
-filename = os.path.join(output_dir, f"combine_plot_{args.MODEL_NAME}_{args.MATRIX_TYPE}_N{args.N}_s{args.s}_mu{args.mu}.sh")
+filename = os.path.join(
+    output_dir,
+    f"combine_plot_{args.MODEL_NAME}_{args.MATRIX_TYPE}_N{args.N}_s{args.s}_mu{args.mu}.sh",
+)
 
 # save the file
 # Write the job script to a file
-with open(filename, 'w') as f:
+with open(filename, "w") as f:
     f.write(combine_script)
