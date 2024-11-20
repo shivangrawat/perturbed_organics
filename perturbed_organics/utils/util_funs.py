@@ -50,8 +50,8 @@ def cholesky_decomposition(A):
     return L
 
 
-### Functions to sample different types of matrices
-
+### ORGaNICs specific code
+# Functions to sample different types of matrices
 
 def generate_matrix(N, matrix_type, **kwargs):
     """
@@ -101,7 +101,8 @@ def generate_matrix(N, matrix_type, **kwargs):
         )
 
 
-# Different types of input drives
+# Function to generate different types of input drives
+
 def make_input_drive(N, input_type, input_norm, **kwargs):
     z = torch.full((N,), 1e-3)  # Set all elements to a small initial value
     if input_type == "localized":
@@ -117,3 +118,5 @@ def make_input_drive(N, input_type, input_norm, **kwargs):
         z = torch.exp(-torch.arange(N).float() ** 2 / (2 * sigma**2))
         z = z / torch.norm(z) * input_norm
     return z
+
+
