@@ -12,6 +12,8 @@ default_params = {
     # 'MATRIX_TYPE': 'goe',
     "MATRIX_TYPE": "goe_symmetric",
     # 'MATRIX_TYPE': 'power_law',
+    # "initial_type": "norm",
+    "initial_type": "first_order",
     "N": 100,
     "s": 100,
     "mu": 1.0,
@@ -83,6 +85,7 @@ cd /home/sr6364/python_scripts/perturbed_organics/examples; \\
 python {args.SCRIPT_NAME} \\
     --MODEL_NAME {args.MODEL_NAME} \\
     --MATRIX_TYPE {args.MATRIX_TYPE} \\
+    --initial_type {args.initial_type} \\
     --N {args.N} \\
     --s {args.s} \\
     --mu {args.mu} \\

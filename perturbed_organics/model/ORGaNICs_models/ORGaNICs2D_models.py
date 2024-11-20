@@ -15,9 +15,10 @@ class ORGaNICs2Dgeneral(ORGaNICs2D):
                  tauA=None,
                  tauY=None,
                  z=None,
-                 initial_sim=None,
+                 initial_type="norm",
                  method="euler",
-                 run_jacobian=True):
+                 run_jacobian=True,
+                 **kwargs):
         super().__init__(params)
 
         self._b0 = b0.to(self.device)
@@ -36,16 +37,18 @@ class ORGaNICs2Dgeneral(ORGaNICs2D):
         self.method = method
         self.run_jacobian = run_jacobian
 
+        self.initial_sim = None
+
         """Initialize the circuit"""
         self.dim = self.calculate_dim()
-        self.initialize_circuit(method=method, initial_sim=initial_sim, run_jacobian=run_jacobian)
+        self.initialize_circuit(method=method, initial_type=initial_type, run_jacobian=run_jacobian, **kwargs)
         self.make_noise_mats()
     
     @property
     def b1(self):
         return self._b1
 
-    def initialize_circuit(self, method="euler", initial_sim=None, run_jacobian=True):
+    def initialize_circuit(self, method="euler", initial_type="norm", run_jacobian=True, **kwargs):
         """
         This function makes the input stimulus, the weight matrices and the jacobian
         corresponding to the system.
@@ -83,6 +86,9 @@ class ORGaNICs2Dgeneral(ORGaNICs2D):
         if self.tauY is None:
             self._tauY = torch.tensor([0.002], device=self.device)
 
+        """Make the initalization for the simulation"""
+        self.initial_sim  = self.inital_conditions(initial_type=initial_type, **kwargs)
+
         """Make the jacobian"""
         try:
             if run_jacobian:
@@ -91,7 +97,7 @@ class ORGaNICs2Dgeneral(ORGaNICs2D):
                 time = tau_max * 200
                 dt = 0.05 * tau_min
                 points = int(time / dt)
-                _ = self.jacobian_autograd(time=time, points=points, method=method, initial_sim=initial_sim)
+                _ = self.jacobian_autograd(time=time, points=points, method=method, initial_sim=self.initial_sim)
         except Exception as e:
             # print(e)
             return e
@@ -134,13 +140,53 @@ class ORGaNICs2Dgeneral(ORGaNICs2D):
     
     def analytical_ss(self):
         """
-        This function calculates the steady-state of the network analytically.
+        This function calculates the steady-state of the network analytically for the case when W_r = I.
         :return: The steady-state of the network.
         """
         a_s = self.sigma ** 2 * self.b0 ** 2 + self.Way @ (self.b1 * self.z) ** 2
         y_s = (self.b1 * self.z) / torch.sqrt(a_s)
         return y_s, a_s
+
+    def first_order_correction(self):
+        """
+        This function calculates the first order correction to the steady-state of the network.
+        :return: The first order correction to the steady-state of the network.
+        """
+        y_s0, a_s0 = self.analytical_ss()
+        y_s1 = (torch.diag(1 / torch.sqrt(a_s0) - 1) - torch.diag(y_s0 / a_s0) @ self.Way @ torch.diag(self.b1 * self.z * (1 - torch.sqrt(a_s0)))) @ self.Wyy @ y_s0
+        a_s1 = self.Way @ torch.diag(2 * self.b1 * self.z * (1 - torch.sqrt(a_s0))) @ self.Wyy @ y_s0
+        return y_s1, a_s1
     
+    def inital_conditions(self, initial_type="norm", **kwargs):
+        """
+        This function returns the initial conditions for the simulation.
+        :return: The initial conditions for the simulation.
+        """
+        if initial_type == "norm":
+            y_s, a_s = self.analytical_ss()
+        elif initial_type == "zero":
+            y_s = torch.zeros(self.Ny, device=self.device)
+            a_s = torch.zeros(self.Na, device=self.device)
+        elif initial_type == "zero_epsilon":
+            y_s = 1e-3 * torch.ones(self.Ny, device=self.device)
+            a_s = 1e-3 * torch.ones(self.Na, device=self.device)
+        elif initial_type == "first_order":
+            # we define the input based on the first order perturbation
+            y_s0, a_s0 = self.analytical_ss()
+            y_s1, a_s1 = self.first_order_correction()
+            y_s = y_s0 + y_s1
+            a_s = a_s0 + a_s1
+        elif initial_type == "random":
+            y_s = torch.rand(self.Ny, device=self.device)
+            a_s = torch.rand(self.Na, device=self.device)
+        elif initial_type == "custom":
+            y_s = kwargs.get("y_s", torch.rand(self.Ny, device=self.device))
+            a_s = kwargs.get("a_s", torch.rand(self.Na, device=self.device))
+        else:
+            raise ValueError("Initial condition type not recognized.")
+        return torch.cat((y_s, a_s), dim=0)
+    
+
 class ORGaNICs2DgeneralRectified(ORGaNICs2Dgeneral):
     def __init__(self, 
                  params,

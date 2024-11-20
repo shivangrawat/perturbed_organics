@@ -36,6 +36,7 @@ parser.add_argument("--MODEL_NAME", type=str, default="localized", help="Model n
 parser.add_argument(
     "--MATRIX_TYPE", type=str, default="goe_symmetric", help="Random matrix type"
 )
+parser.add_argument("--initial_type", type=str, default="norm", help="Initial condition for simulation")
 parser.add_argument("--N", type=int, default=100, help="Number of neurons")
 parser.add_argument("--s", type=int, default=100, help="Sparsity")
 parser.add_argument("--mu", type=float, default=0.0, help="Mean of the distribution")
@@ -68,6 +69,7 @@ print(f"Task ID: {task_id}")
 # arguments of the model parameters
 model_name = args.MODEL_NAME
 matrix_type = args.MATRIX_TYPE
+initial_type = args.initial_type
 N = args.N
 s = args.s
 mu = args.mu
@@ -159,11 +161,6 @@ def run_trial(i, j, k, delta, input):
     eigvals = torch.linalg.eigvals(Wyy)
     spectral_radius = torch.max(torch.abs(eigvals))
 
-    # Start the simulation from the normalization fixed point
-    a_s = sigma**2 * b0**2 + Way @ (b1 * z) ** 2
-    y_s = (b1 * z) / torch.sqrt(a_s)
-    initial_sim = torch.cat((y_s, a_s), dim=0)
-
     # Instantiate the model
     model = organics.ORGaNICs2Dgeneral(
         params=params,
@@ -175,7 +172,7 @@ def run_trial(i, j, k, delta, input):
         Wyy=Wyy,
         Way=Way,
         z=z,
-        initial_sim=initial_sim,
+        initial_type=initial_type,
         run_jacobian=True,
     )
 
