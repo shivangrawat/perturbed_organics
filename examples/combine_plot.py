@@ -109,6 +109,7 @@ plt.xticks(fontsize=22)
 plt.yticks(fontsize=22)
 plt.savefig(os.path.join(path, 'percent_stable_circuits.png'), bbox_inches='tight')
 
+
 ### spectral radius plotting ###
 spectral_radius_mean = spectral_radius.mean(dim=2)
 plt.figure(figsize=(12, 10))
@@ -134,13 +135,14 @@ plt.imshow(y_ratio_mean, extent=[input_range.min(), input_range.max(), delta_ran
            origin='lower', aspect='auto', cmap=cmap, norm=norm)
 colorbar = plt.colorbar(fraction=0.046, pad=0.04)
 colorbar.ax.tick_params(labelsize=22)
-colorbar.ax.set_ylabel(r"$\frac{||\mathbf{y}||}{||\mathbf{y}_0||}$", fontsize=22, rotation=0, labelpad=30)
+colorbar.ax.set_ylabel(r"$\frac{||\mathbf{y}-\mathbf{y}_0||}{||\mathbf{y}_0||}$", fontsize=22, rotation=0, labelpad=30)
 plt.xlabel('Input drive', fontsize=22)
 plt.ylabel(r'$\Delta$', fontsize=22, rotation=0, labelpad=15)
 plt.title("Actual Mean Ratio of Norm Difference for y", fontsize=22)
 plt.xticks(fontsize=22)
 plt.yticks(fontsize=22)
 plt.savefig(os.path.join(path, 'actual_mean_y_ratio.png'), bbox_inches='tight')
+
 
 ### Plot the a_ratio heatmap ###
 norm = mcolors.Normalize(vmin=0, vmax=1, clip=False)
@@ -151,13 +153,14 @@ plt.imshow(a_ratio_mean, extent=[input_range.min(), input_range.max(), delta_ran
            origin='lower', aspect='auto', cmap=cmap, norm=norm)
 colorbar = plt.colorbar(fraction=0.046, pad=0.04)
 colorbar.ax.tick_params(labelsize=22)
-colorbar.ax.set_ylabel(r"$\frac{||\mathbf{a}||}{||\mathbf{a}_0||}$", fontsize=22, rotation=0, labelpad=30)
+colorbar.ax.set_ylabel(r"$\frac{||\mathbf{a}-\mathbf{a}_0||}{||\mathbf{a}_0||}$", fontsize=22, rotation=0, labelpad=30)
 plt.xlabel('Input drive', fontsize=22)
 plt.ylabel(r'$\Delta$', fontsize=22, rotation=0, labelpad=15)
 plt.title("Actual Mean Ratio of Norm Difference for a", fontsize=22)
 plt.xticks(fontsize=22)
 plt.yticks(fontsize=22)
 plt.savefig(os.path.join(path, 'actual_mean_a_ratio.png'), bbox_inches='tight')
+
 
 ### Plot the perturbed y_ratio ###
 norm = mcolors.Normalize(vmin=0, vmax=1, clip=False)
@@ -176,6 +179,7 @@ plt.xticks(fontsize=22)
 plt.yticks(fontsize=22)
 plt.savefig(os.path.join(path, 'first_order_mean_y_ratio.png'), bbox_inches='tight')
 
+
 ### Plot the perturbed a_ratio ###
 norm = mcolors.Normalize(vmin=0, vmax=1, clip=False)
 a_ratio = torch.norm(first_order_perturb_a, dim=3) / torch.norm(norm_fixed_point_a, dim=3)
@@ -193,6 +197,7 @@ plt.xticks(fontsize=22)
 plt.yticks(fontsize=22)
 plt.savefig(os.path.join(path, 'first_order_mean_a_ratio.png'), bbox_inches='tight')
 
+
 ### Plot the maximum real part of the eigenvalues of J ###
 norm = mcolors.Normalize(vmin=None, vmax=0, clip=False)
 eigvals_J_real = torch.max(torch.real(eigvals_J), dim=3).values
@@ -209,3 +214,4 @@ plt.title("Mean Maximum Real Part of Eigenvalues of J", fontsize=22)
 plt.xticks(fontsize=22)
 plt.yticks(fontsize=22)
 plt.savefig(os.path.join(path, 'mean_max_real_part_eigvals_J.png'), bbox_inches='tight')
+
