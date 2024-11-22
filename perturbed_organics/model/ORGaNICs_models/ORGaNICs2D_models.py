@@ -153,8 +153,9 @@ class ORGaNICs2Dgeneral(ORGaNICs2D):
         :return: The first order correction to the steady-state of the network.
         """
         y_s0, a_s0 = self.analytical_ss()
-        y_s1 = (torch.diag(1 / torch.sqrt(a_s0) - 1) - torch.diag(y_s0 / a_s0) @ self.Way @ torch.diag(self.b1 * self.z * (1 - torch.sqrt(a_s0)))) @ self.Wyy @ y_s0
-        a_s1 = self.Way @ torch.diag(2 * self.b1 * self.z * (1 - torch.sqrt(a_s0))) @ self.Wyy @ y_s0
+        K = self.Wyy - torch.eye(self.Ny, device=self.device)
+        y_s1 = (torch.diag(1 / torch.sqrt(a_s0) - 1) - torch.diag(y_s0 / a_s0) @ self.Way @ torch.diag(self.b1 * self.z * (1 - torch.sqrt(a_s0)))) @ K @ y_s0
+        a_s1 = self.Way @ torch.diag(2 * self.b1 * self.z * (1 - torch.sqrt(a_s0))) @ K @ y_s0
         return y_s1, a_s1
     
     def inital_conditions(self, initial_type="norm", **kwargs):

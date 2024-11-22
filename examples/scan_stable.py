@@ -36,7 +36,9 @@ parser.add_argument("--MODEL_NAME", type=str, default="localized", help="Model n
 parser.add_argument(
     "--MATRIX_TYPE", type=str, default="goe_symmetric", help="Random matrix type"
 )
-parser.add_argument("--initial_type", type=str, default="norm", help="Initial condition for simulation")
+parser.add_argument(
+    "--initial_type", type=str, default="norm", help="Initial condition for simulation"
+)
 parser.add_argument("--N", type=int, default=100, help="Number of neurons")
 parser.add_argument("--s", type=int, default=100, help="Sparsity")
 parser.add_argument("--mu", type=float, default=0.0, help="Mean of the distribution")
@@ -176,17 +178,56 @@ def run_trial(i, j, k, delta, input):
         run_jacobian=True,
     )
 
+    y_s0, a_s0 = model.analytical_ss()
+    y_s1, a_s1 = model.first_order_correction()
+
     if model.J is None:
-        return (False, spectral_radius, y_s, a_s, None, None)
+        return (
+            False,
+            spectral_radius.to(torch.float16),
+            y_s0.to(torch.float16),
+            a_s0.to(torch.float16),
+            None,
+            None,
+            y_s1.to(torch.float16),
+            a_s1.to(torch.float16),
+            None,
+        )
     else:
-        return (True, spectral_radius, y_s, a_s, model.ss[0:N], model.ss[N:2*N])
+        eigvals_J = torch.linalg.eigvals(model.J)
+        return (
+            True,
+            spectral_radius.to(torch.float16),
+            y_s0.to(torch.float16),
+            a_s0.to(torch.float16),
+            model.ss[0:N].to(torch.float16),
+            model.ss[N : 2 * N].to(torch.float16),
+            y_s1.to(torch.float16),
+            a_s1.to(torch.float16),
+            eigvals_J,
+        )
 
 
 def run_trial_and_collect(i, j, k):
     delta = delta_range[i]
     input = input_range[j]
-    stable, spec_radius, y_s, a_s, y_s_actual, a_s_actual = run_trial(i, j, k, delta, input)
-    return (i, j, k, stable, spec_radius, y_s, a_s, y_s_actual, a_s_actual)
+    stable, spec_radius, y_s0, a_s0, y_s_actual, a_s_actual, y_s1, a_s1, eigvals_J = (
+        run_trial(i, j, k, delta, input)
+    )
+    return (
+        i,
+        j,
+        k,
+        stable,
+        spec_radius,
+        y_s0,
+        a_s0,
+        y_s_actual,
+        a_s_actual,
+        y_s1,
+        a_s1,
+        eigvals_J,
+    )
 
 
 results = Parallel(n_jobs=-1, verbose=2)(
@@ -200,33 +241,62 @@ bool_stable_task = torch.full(
     (num_delta, num_input, num_trials), fill_value=-1, dtype=torch.int8
 )
 spectral_radius_task = torch.full(
-    (num_delta, num_input, num_trials), fill_value=float("nan"), dtype=torch.float32
+    (num_delta, num_input, num_trials), fill_value=float("nan"), dtype=torch.float16
 )
-
 norm_fixed_point_y_task = torch.full(
-    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float32
+    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16
 )
 norm_fixed_point_a_task = torch.full(
-    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float32
+    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16
 )
-
 actual_fixed_point_y_task = torch.full(
-    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float32
+    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16
 )
 actual_fixed_point_a_task = torch.full(
-    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float32
+    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16
+)
+first_order_perturb_y_task = torch.full(
+    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16
+)
+first_order_perturb_a_task = torch.full(
+    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16
+)
+eigvals_J_task = torch.full(
+    (num_delta, num_input, num_trials, 2 * N),
+    fill_value=float("nan"),
+    dtype=torch.complex64,
 )
 
 # Update the results arrays
 for res in results:
-    i, j, k, stable, spec_radius, y_s, a_s, y_s_actual, a_s_actual = res
+    (
+        i,
+        j,
+        k,
+        stable,
+        spec_radius,
+        y_s0,
+        a_s0,
+        y_s_actual,
+        a_s_actual,
+        y_s1,
+        a_s1,
+        eigvals_J,
+    ) = res
     bool_stable_task[i, j, k] = int(stable)
     spectral_radius_task[i, j, k] = spec_radius
-    norm_fixed_point_y_task[i, j, k] = y_s
-    norm_fixed_point_a_task[i, j, k] = a_s
+    norm_fixed_point_y_task[i, j, k] = y_s0
+    norm_fixed_point_a_task[i, j, k] = a_s0
+    first_order_perturb_y_task[i, j, k] = y_s1
+    first_order_perturb_a_task[i, j, k] = a_s1
+
     if y_s_actual is not None:
         actual_fixed_point_y_task[i, j, k] = y_s_actual
         actual_fixed_point_a_task[i, j, k] = a_s_actual
+        eigvals_J_task[i, j, k] = eigvals_J
+
+# delete results to save memory
+del results
 
 # Save partial results
 torch.save(bool_stable_task, os.path.join(path, f"bool_stable_task_{task_id}.pt"))
@@ -248,4 +318,16 @@ torch.save(
 torch.save(
     actual_fixed_point_a_task,
     os.path.join(path, f"actual_fixed_point_a_task_{task_id}.pt"),
+)
+torch.save(
+    first_order_perturb_y_task,
+    os.path.join(path, f"first_order_perturb_y_task_{task_id}.pt"),
+)
+torch.save(
+    first_order_perturb_a_task,
+    os.path.join(path, f"first_order_perturb_a_task_{task_id}.pt"),
+)
+torch.save(
+    eigvals_J_task,
+    os.path.join(path, f"eigvals_J_task_{task_id}.pt"),
 )
