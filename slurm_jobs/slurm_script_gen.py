@@ -5,10 +5,10 @@ import os
 
 # Define default parameters
 default_params = {
-    "MODEL_NAME": "localized",
+    # "MODEL_NAME": "localized",
     # 'MODEL_NAME': 'delocalized',
     # 'MODEL_NAME': 'random',
-    # 'MODEL_NAME': 'gaussian',
+    'MODEL_NAME': 'gaussian',
     # 'MATRIX_TYPE': 'goe',
     "MATRIX_TYPE": "goe_symmetric",
     # 'MATRIX_TYPE': 'power_law',
@@ -16,7 +16,7 @@ default_params = {
     "initial_type": "first_order",
     "N": 100,
     "s": 100,
-    "mu": 0.5,
+    "mu": 0.1,
     "sigma": 0.1,
     "b0": 0.5,
     "b1": 0.5,
