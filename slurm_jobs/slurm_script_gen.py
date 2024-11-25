@@ -116,7 +116,7 @@ folder_name = f"{args.MODEL_NAME}_{args.MATRIX_TYPE}_N_{args.N}_s_{args.s}_mu_{a
 
 combine_script = f"""#!/bin/bash
 #SBATCH --nodes=1
-#SBATCH --time=0:05:00
+#SBATCH --time=0:10:00
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=2
 #SBATCH --job-name=combine_plot
