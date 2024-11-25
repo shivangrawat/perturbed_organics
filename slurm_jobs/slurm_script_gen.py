@@ -5,10 +5,10 @@ import os
 
 # Define default parameters
 default_params = {
-    # "MODEL_NAME": "localized",
+    "MODEL_NAME": "localized",
     # 'MODEL_NAME': 'delocalized',
     # 'MODEL_NAME': 'random',
-    'MODEL_NAME': 'gaussian',
+    # 'MODEL_NAME': 'gaussian',
     # 'MATRIX_TYPE': 'goe',
     "MATRIX_TYPE": "goe_symmetric",
     # 'MATRIX_TYPE': 'power_law',
@@ -16,7 +16,7 @@ default_params = {
     "initial_type": "first_order",
     "N": 100,
     "s": 100,
-    "mu": 0.1,
+    "mu": 0.0,
     "sigma": 0.1,
     "b0": 0.5,
     "b1": 0.5,
@@ -27,11 +27,11 @@ default_params = {
     "num_input": 200,
     "max_delta": 5.0,
     "max_input": 5.0,
-    "NUM_TASKS": 10,
+    "NUM_TASKS": 80,
     "JOB_NAME": "param_scan",
     "TIME": "0:30:00",
-    "CPUS": 32,
-    "MEMORY": "32GB",
+    "CPUS": 4,
+    "MEMORY": "16GB",
     "EMAIL": "sr6364@nyu.edu",
     "SCRIPT_NAME": "scan_stable.py",
 }
