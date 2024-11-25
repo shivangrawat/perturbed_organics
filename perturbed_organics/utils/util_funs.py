@@ -104,7 +104,7 @@ def generate_matrix(N, matrix_type, **kwargs):
 # Function to generate different types of input drives
 
 def make_input_drive(N, input_type, input_norm, **kwargs):
-    z = torch.full((N,), 1e-3)  # Set all elements to a small initial value
+    z = torch.full((N,), 0.0)  # Set all elements to 0
     if input_type == "localized":
         z[0] = input_norm
     elif input_type == "delocalized":
