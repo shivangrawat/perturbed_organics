@@ -16,7 +16,7 @@ default_params = {
     "initial_type": "first_order",
     "N": 100,
     "s": 100,
-    "mu": 0.0,
+    "mu": -0.1,
     "sigma": 0.1,
     "b0": 0.5,
     "b1": 0.5,

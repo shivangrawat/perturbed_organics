@@ -126,6 +126,40 @@ plt.yticks(fontsize=22)
 plt.savefig(os.path.join(path, 'mean_spectral_radius.png'), bbox_inches='tight')
 
 
+### Plot the y_norm heatmap ###
+norm = mcolors.Normalize(vmin=0, vmax=1, clip=False)
+y_mean = torch.norm(actual_fixed_point_y, dim=3).mean(dim=2)
+plt.figure(figsize=(12, 10))
+plt.imshow(y_mean, extent=[input_range.min(), input_range.max(), delta_range.min(), delta_range.max()],
+           origin='lower', aspect='auto', cmap=cmap, norm=norm)
+colorbar = plt.colorbar(fraction=0.046, pad=0.04)
+colorbar.ax.tick_params(labelsize=22)
+colorbar.ax.set_ylabel(r"$||\mathbf{y}||$", fontsize=22, rotation=0, labelpad=30)
+plt.xlabel('Input drive', fontsize=22)
+plt.ylabel(r'$\Delta$', fontsize=22, rotation=0, labelpad=15)
+plt.title("Norm of y", fontsize=22)
+plt.xticks(fontsize=22)
+plt.yticks(fontsize=22)
+plt.savefig(os.path.join(path, 'y_norm.png'), bbox_inches='tight')
+
+
+### Plot the a_norm heatmap ###
+norm = mcolors.Normalize(vmin=0, vmax=1, clip=False)
+a_mean = torch.norm(actual_fixed_point_a, dim=3).mean(dim=2)
+plt.figure(figsize=(12, 10))
+plt.imshow(a_mean, extent=[input_range.min(), input_range.max(), delta_range.min(), delta_range.max()],
+           origin='lower', aspect='auto', cmap=cmap, norm=norm)
+colorbar = plt.colorbar(fraction=0.046, pad=0.04)
+colorbar.ax.tick_params(labelsize=22)
+colorbar.ax.set_ylabel(r"$||\mathbf{a}||$", fontsize=22, rotation=0, labelpad=30)
+plt.xlabel('Input drive', fontsize=22)
+plt.ylabel(r'$\Delta$', fontsize=22, rotation=0, labelpad=15)
+plt.title("Norm of a", fontsize=22)
+plt.xticks(fontsize=22)
+plt.yticks(fontsize=22)
+plt.savefig(os.path.join(path, 'a_norm.png'), bbox_inches='tight')
+
+
 ### Plot the y_ratio heatmap ###
 norm = mcolors.Normalize(vmin=0, vmax=1, clip=False)
 y_ratio = torch.norm(norm_fixed_point_y - actual_fixed_point_y, dim=3) / torch.norm(norm_fixed_point_y, dim=3)
