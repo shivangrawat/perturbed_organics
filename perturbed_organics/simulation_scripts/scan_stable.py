@@ -53,7 +53,13 @@ parser.add_argument("--num_trials", type=int, default=10, help="Number of trials
 parser.add_argument("--num_delta", type=int, default=10, help="Number of delta steps")
 parser.add_argument("--num_input", type=int, default=10, help="Number of input steps")
 parser.add_argument(
+    "--min_delta", type=float, default=0.0, help="Minimum value of the parameter delta"
+)
+parser.add_argument(
     "--max_delta", type=float, default=5.0, help="Maximum value of the parameter delta"
+)
+parser.add_argument(
+    "--min_input", type=float, default=0.01, help="Minimum value of the parameter input"
 )
 parser.add_argument(
     "--max_input", type=float, default=5.0, help="Maximum value of the parameter input"
@@ -80,20 +86,22 @@ mu = args.mu
 num_delta = args.num_delta
 num_input = args.num_input
 num_trials = args.num_trials
+min_input = args.min_input
 max_input = args.max_input
+min_delta = args.min_delta
 max_delta = args.max_delta
 
 # Define the scan parameters
-delta_range = np.linspace(0, max_delta, num_delta)
-input_range = np.linspace(0.01, max_input, num_input)
+delta_range = np.linspace(min_delta, max_delta, num_delta)
+input_range = np.linspace(min_input, max_input, num_input)
 
 # define the path of the folder to save the results in
 folder_name = (
     model_name
     + "_"
     + matrix_type
-    + "_N_{}_s_{}_mu_{}_num_delta_{}_num_input_{}_num_trials_{}_b0_{}_b1_{}".format(
-        N, s, mu, num_delta, num_input, num_trials, args.b0, args.b1
+    + "_N_{}_s_{}_mu_{}_num_delta_{}_num_input_{}_num_trials_{}_b0_{}_b1_{}_deltaval_{}".format(
+        N, s, mu, num_delta, num_input, num_trials, args.b0, args.b1, min_delta
     )
 )
 path = os.path.join("/vast/sr6364/perturbed_organics", "data", folder_name)

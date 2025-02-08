@@ -5,9 +5,9 @@ import os
 
 # Define default parameters
 default_params = {
-    "MODEL_NAME": "localized",
+    # "MODEL_NAME": "localized",
     # 'MODEL_NAME': 'delocalized',
-    # 'MODEL_NAME': 'random',
+    'MODEL_NAME': 'random',
     # 'MODEL_NAME': 'gaussian',
     # 'MATRIX_TYPE': 'goe',
     "MATRIX_TYPE": "goe_symmetric",
@@ -16,20 +16,22 @@ default_params = {
     "initial_type": "first_order",
     "N": 100,
     "s": 100,
-    "mu": -0.1,
+    "mu": 0.0,
     "sigma": 0.1,
-    "b0": 0.5,
-    "b1": 0.5,
+    "b0": 1.0,
+    "b1": 1.0,
     "tauA": 0.002,
     "tauY": 0.002,
-    "num_trials": 10,
-    "num_delta": 200,
-    "num_input": 200,
+    "num_trials": 20,
+    "num_delta": 1,
+    "num_input": 100,
+    "min_delta": 0.1,
     "max_delta": 5.0,
-    "max_input": 5.0,
-    "NUM_TASKS": 80,
+    "min_input": 0.01,
+    "max_input": 1.0,
+    "NUM_TASKS": 10,
     "JOB_NAME": "param_scan",
-    "TIME": "0:30:00",
+    "TIME": "0:02:00",
     "CPUS": 4,
     "MEMORY": "16GB",
     "EMAIL": "sr6364@nyu.edu",
@@ -81,7 +83,7 @@ job_script = f"""#!/bin/bash
 singularity exec --overlay /scratch/sr6364/overlay-files/overlay-50G-10M.ext3:ro \\
     /scratch/work/public/singularity/cuda11.8.86-cudnn8.7-devel-ubuntu22.04.2.sif /bin/bash -c \\
 'source /ext3/env.sh; conda activate feed-r-conda; \\
-cd /home/sr6364/python_scripts/perturbed_organics/examples; \\
+cd /home/sr6364/python_scripts/perturbed_organics/perturbed_organics/simulation_scripts; \\
 python {args.SCRIPT_NAME} \\
     --MODEL_NAME {args.MODEL_NAME} \\
     --MATRIX_TYPE {args.MATRIX_TYPE} \\
@@ -97,7 +99,9 @@ python {args.SCRIPT_NAME} \\
     --num_trials {args.num_trials} \\
     --num_delta {args.num_delta} \\
     --num_input {args.num_input} \\
+    --min_delta {args.min_delta} \\
     --max_delta {args.max_delta} \\
+    --min_input {args.min_input} \\
     --max_input {args.max_input} \\
     --TASK_ID ${{SLURM_ARRAY_TASK_ID}} \\
     --NUM_TASKS {args.NUM_TASKS} '
@@ -111,7 +115,7 @@ with open(filename, "w") as f:
 
 # Now we create the combine script
 # define the folder name based on the parameters
-folder_name = f"{args.MODEL_NAME}_{args.MATRIX_TYPE}_N_{args.N}_s_{args.s}_mu_{args.mu}_num_delta_{args.num_delta}_num_input_{args.num_input}_num_trials_{args.num_trials}_b0_{args.b0}_b1_{args.b1}"
+folder_name = f"{args.MODEL_NAME}_{args.MATRIX_TYPE}_N_{args.N}_s_{args.s}_mu_{args.mu}_num_delta_{args.num_delta}_num_input_{args.num_input}_num_trials_{args.num_trials}_b0_{args.b0}_b1_{args.b1}_deltaval_{args.min_delta}"
 
 
 combine_script = f"""#!/bin/bash
@@ -126,7 +130,7 @@ combine_script = f"""#!/bin/bash
 #SBATCH --output=job.%j.out
 
 singularity exec --overlay /scratch/sr6364/overlay-files/overlay-50G-10M.ext3:ro /scratch/work/public/singularity/cuda11.8.86-cudnn8.7-devel-ubuntu22.04.2.sif /bin/bash -c \
-'source /ext3/env.sh; conda activate feed-r-conda; cd /home/sr6364/python_scripts/perturbed_organics/examples; python combine_plot.py \\
+'source /ext3/env.sh; conda activate feed-r-conda; cd /home/sr6364/python_scripts/perturbed_organics/perturbed_organics/simulation_scripts; python combine_plot.py \\
 --folder_name {folder_name} '
 """
 

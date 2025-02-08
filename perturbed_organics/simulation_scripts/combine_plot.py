@@ -94,20 +94,21 @@ torch.save(first_order_perturb_a, os.path.join(path, f'first_order_perturb_a.pt'
 torch.save(eigvals_J, os.path.join(path, f'eigvals_J.pt'))
 
 
-### Plot percent stable circuits ###
+### Plot percent unstable circuits ###
 plt.figure(figsize=(12, 10))
 norm = mcolors.Normalize(vmin=0, vmax=100, clip=False)
-plt.imshow(percent_stable, extent=[input_range.min(), input_range.max(), delta_range.min(), delta_range.max()],
+percent_unstable = 100 - percent_stable
+plt.imshow(percent_unstable, extent=[input_range.min(), input_range.max(), delta_range.min(), delta_range.max()],
            origin='lower', aspect='auto', cmap=cmap, norm=norm)
 colorbar = plt.colorbar(fraction=0.046, pad=0.04)
 colorbar.ax.tick_params(labelsize=22)
-colorbar.ax.set_ylabel(r"% stable", fontsize=22, rotation=0, labelpad=30)
+colorbar.ax.set_ylabel(r"% Unstable", fontsize=22, rotation=0, labelpad=30)
 plt.xlabel('Input drive', fontsize=22)
 plt.ylabel(r'$\Delta$', fontsize=22, rotation=0, labelpad=15)
-plt.title("Phase Diagram: Percent Stable Circuits", fontsize=22)
+plt.title("Phase Diagram: Percent Unstable Circuits", fontsize=22)
 plt.xticks(fontsize=22)
 plt.yticks(fontsize=22)
-plt.savefig(os.path.join(path, 'percent_stable_circuits.png'), bbox_inches='tight')
+plt.savefig(os.path.join(path, 'percent_unstable_circuits.png'), bbox_inches='tight')
 
 
 ### spectral radius plotting ###
