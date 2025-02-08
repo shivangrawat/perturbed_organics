@@ -68,7 +68,7 @@ def generate_matrix(N, matrix_type, **kwargs):
         mu = kwargs.get("mu", 0.0)
 
         mask = torch.bernoulli(torch.full((N, N), s / N))
-        values = torch.normal(mu / s, delta / (2 * math.sqrt(s)), (N, N))
+        values = torch.normal(mu / s, delta / math.sqrt(s), (N, N))
         matrix = values * mask
         return matrix
 
@@ -77,14 +77,10 @@ def generate_matrix(N, matrix_type, **kwargs):
         delta = kwargs.get("delta", 1.0)
         mu = kwargs.get("mu", 0.0)
 
-        mask = torch.bernoulli(torch.full((N, N), s / N)).triu()
-        values = torch.normal(mu / s, delta / (2 * math.sqrt(s)), (N, N))
-        upper_triangular = values * mask
-        symmetric_matrix = (
-            upper_triangular
-            + upper_triangular.T
-            - torch.diag(torch.diag(upper_triangular))
-        )
+        mask = torch.bernoulli(torch.full((N, N), s / N))
+        values = torch.normal(mu / s, delta / math.sqrt(s), (N, N))
+        matrix = values * mask
+        symmetric_matrix = (matrix + matrix.t()) / 2
         return symmetric_matrix
 
     elif matrix_type == "power_law":
