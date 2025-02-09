@@ -33,12 +33,10 @@ parser.add_argument("--NUM_TASKS", type=int, default=1, help="Number of tasks")
 
 # parameters of the model
 parser.add_argument("--MODEL_NAME", type=str, default="localized", help="Model name")
-parser.add_argument(
-    "--MATRIX_TYPE", type=str, default="goe_symmetric", help="Random matrix type"
-)
-parser.add_argument(
-    "--initial_type", type=str, default="norm", help="Initial condition for simulation"
-)
+parser.add_argument("--MATRIX_TYPE", type=str, default="goe_symmetric", help="Random matrix type")
+parser.add_argument("--initial_type", type=str, default="norm", help="Initial condition for simulation")
+parser.add_argument("--data_save_loc", type=str, default="/vast/sr6364/perturbed_organics/data", help="Location to save data")
+parser.add_argument("--extra_file_name", type=str, default="", help="Extra file name")
 parser.add_argument("--N", type=int, default=100, help="Number of neurons")
 parser.add_argument("--s", type=int, default=100, help="Sparsity")
 parser.add_argument("--mu", type=float, default=0.0, help="Mean of the distribution")
@@ -77,6 +75,8 @@ print(f"Task ID: {task_id}")
 # arguments of the model parameters
 model_name = args.MODEL_NAME
 matrix_type = args.MATRIX_TYPE
+data_save_loc = args.data_save_loc
+extra_file_name = args.extra_file_name
 initial_type = args.initial_type
 N = args.N
 s = args.s
@@ -100,11 +100,11 @@ folder_name = (
     model_name
     + "_"
     + matrix_type
-    + "_N_{}_s_{}_mu_{}_num_delta_{}_num_input_{}_num_trials_{}_b0_{}_b1_{}_deltaval_{}".format(
-        N, s, mu, num_delta, num_input, num_trials, args.b0, args.b1, min_delta
+    + "_N_{}_s_{}_mu_{}_num_delta_{}_num_input_{}_num_trials_{}_b0_{}_b1_{}_{}".format(
+        N, s, mu, num_delta, num_input, num_trials, args.b0, args.b1, extra_file_name
     )
 )
-path = os.path.join("/vast/sr6364/perturbed_organics", "data", folder_name)
+path = os.path.join(data_save_loc, folder_name)
 
 # Save parameters only if task_id == 0 to avoid race conditions
 if task_id == 0:

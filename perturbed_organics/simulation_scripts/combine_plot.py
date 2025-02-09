@@ -11,12 +11,14 @@ cmap = 'plasma'
 
 
 parser = argparse.ArgumentParser(description="Combine the results from the different job arrays")
+parser.add_argument("--folder_loc", type=str, default="", help="Location of the folder")
 parser.add_argument("--folder_name", type=str, default="", help="Name of the folder")
 args = parser.parse_args()
 
 # Define the path and folder name
+folder_loc = args.folder_loc
 folder_name = args.folder_name
-path = os.path.join('/vast/sr6364/perturbed_organics', 'data', folder_name)
+path = os.path.join(folder_loc, folder_name)
 
 # Load parameters from the JSON file
 param_file_path = os.path.join(path, 'parameters.json')
