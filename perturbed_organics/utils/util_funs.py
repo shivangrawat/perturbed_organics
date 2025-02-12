@@ -96,7 +96,6 @@ def generate_matrix(N, matrix_type, **kwargs):
             "Invalid matrix_type. Choose from 'goe', 'goe_symmetric', or 'power_law'."
         )
 
-
 # Function to generate different types of input drives
 
 def make_input_drive(N, input_type, input_norm, **kwargs):
@@ -116,3 +115,51 @@ def make_input_drive(N, input_type, input_norm, **kwargs):
     return z
 
 
+def nanstd(input, dim=0, keepdim=False, unbiased=True):
+    """
+    Compute the standard deviation of `input` along dimension `dim`, ignoring NaNs.
+    
+    Parameters:
+      input (Tensor): The input tensor.
+      dim (int or tuple of ints, optional): Dimension(s) along which to compute the std. 0 by default.
+      keepdim (bool, optional): Whether the output tensor has dim retained or not.
+      unbiased (bool, optional): If True, use Bessel's correction (divide by N-1).
+           Otherwise, divide by N.
+    
+    Returns:
+      Tensor: The computed standard deviation.
+    """
+
+    # Compute the mean ignoring NaNs.
+    mean = torch.nanmean(input, dim=dim, keepdim=True)
+    
+    # Create a mask of non-NaN elements.
+    mask = ~torch.isnan(input)
+    
+    # Compute squared differences; set differences for NaNs to 0.
+    diff = (input - mean) ** 2
+    diff[~mask] = 0.0
+
+    # Sum squared differences along the specified dimension.
+    sum_diff = diff.sum(dim=dim, keepdim=keepdim)
+    
+    # Count the number of valid (non-NaN) elements.
+    count = mask.sum(dim=dim, keepdim=keepdim).to(input.dtype)
+    
+    # Determine the degrees of freedom correction.
+    ddof = 1 if unbiased else 0
+    denom = count - ddof
+
+    # Prepare tensors for where() to handle edge cases.
+    # If count == 0, return NaN.
+    # If denom <= 0 (e.g. when there's only one valid element with unbiased=True), set variance to 0.
+    nan_tensor = torch.full_like(sum_diff, float('nan'))
+    zero_tensor = torch.zeros_like(sum_diff)
+    
+    variance = torch.where(
+        count == 0,
+        nan_tensor,
+        torch.where(denom <= 0, zero_tensor, sum_diff / denom)
+    )
+    
+    return variance.sqrt()
