@@ -93,7 +93,8 @@ max_delta = args.max_delta
 
 # Define the scan parameters
 delta_range = np.linspace(min_delta, max_delta, num_delta)
-input_range = np.linspace(min_input, max_input, num_input)
+# input_range = np.linspace(min_input, max_input, num_input)
+input_range = np.logspace(np.log10(min_input), np.log10(max_input), num_input)
 
 # define the path of the folder to save the results in
 folder_name = (
