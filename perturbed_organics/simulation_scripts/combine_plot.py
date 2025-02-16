@@ -45,6 +45,7 @@ first_order_perturb_y = torch.full((num_delta, num_input, num_trials, N), fill_v
 first_order_perturb_a = torch.full((num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16)
 eigvals_J = torch.full((num_delta, num_input, num_trials, 2 * N), fill_value=float("nan"), dtype=torch.complex64)
 
+print(f"Combining partial results from {num_tasks} tasks")
 
 # Load and combine partial results
 for task_id in range(num_tasks):
@@ -95,6 +96,7 @@ torch.save(first_order_perturb_y, os.path.join(path, f'first_order_perturb_y.pt'
 torch.save(first_order_perturb_a, os.path.join(path, f'first_order_perturb_a.pt'))
 torch.save(eigvals_J, os.path.join(path, f'eigvals_J.pt'))
 
+print("Results saved successfully")
 
 ### Plot percent unstable circuits ###
 plt.figure(figsize=(12, 10))

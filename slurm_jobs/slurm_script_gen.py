@@ -5,8 +5,8 @@ import os
 
 # Define default parameters
 default_params = {
-    "MODEL_NAME": "localized",
-    # 'MODEL_NAME': 'delocalized',
+    # "MODEL_NAME": "localized",
+    'MODEL_NAME': 'delocalized',
     # 'MODEL_NAME': 'random',
     # 'MODEL_NAME': 'gaussian',
     # 'MATRIX_TYPE': 'goe',
@@ -22,16 +22,16 @@ default_params = {
     "b1": 1.0,
     "tauA": 0.002,
     "tauY": 0.002,
-    "num_trials": 500,
-    "num_delta": 1,
-    "num_input": 200,
-    "min_delta": 0.4,
-    "max_delta": 5.0,
+    "num_trials": 250,
+    "num_delta": 100,
+    "num_input": 100,
+    "min_delta": 0.0,
+    "max_delta": 0.4,
     "min_input": 0.01,
     "max_input": 1.0,
-    "NUM_TASKS": 50,
+    "NUM_TASKS": 100,
     "JOB_NAME": "param_scan",
-    "TIME": "0:30:00",
+    "TIME": "2:00:00",
     "CPUS": 4,
     "MEMORY": "16GB",
     "EMAIL": "sr6364@nyu.edu",
@@ -62,8 +62,9 @@ os.makedirs(output_dir, exist_ok=True)
 
 
 ##### Change things here for a better filename
-data_save_loc = f"/vast/sr6364/perturbed_organics/data/curves1/{args.MODEL_NAME}"
-extra_file_name = f"delta_{args.min_delta}"
+data_save_loc = f"/vast/sr6364/perturbed_organics/data/phase_diagram/{args.MODEL_NAME}"
+# extra_file_name = f"delta_{args.min_delta}"
+extra_file_name = f"phase_diagram"
 
 # Generate the filename based on selected parameters
 filename = os.path.join(
