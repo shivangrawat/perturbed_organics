@@ -32,12 +32,17 @@ class ORGaNICs2Dgeneral(ORGaNICs2D):
         self.Wyy = Wyy.to(self.device)
         self.Way = Way.to(self.device)
 
-        self.z = z.to(self.device)
+        if isinstance(z, torch.Tensor):
+            self.z = z.to(self.device)
+        else:
+            self.z = z
 
         self.method = method
         self.run_jacobian = run_jacobian
 
         self.initial_sim = None
+
+        self.kwargs = kwargs
 
         """Initialize the circuit"""
         self.dim = self.calculate_dim()
@@ -226,6 +231,50 @@ class ORGaNICs2DgeneralRectified(ORGaNICs2Dgeneral):
         dydt = (1 / self.tauY) * (-y + self.b1 * self.z
                 + (1 - torch.sqrt(torch.relu(a))) * (self.Wyy @ torch.relu(y)))
         dadt = (1 / self.tauA) * (-a + (self.sigma * self.b0) ** 2 + self.Way @ (torch.relu(a) * torch.relu(y) ** 2))
+        return torch.cat((dydt, dadt))
+
+class ORGaNICs2Dgeneral_time_varying_input(ORGaNICs2Dgeneral):
+    def __init__(self, 
+                 params,
+                 Way=None, 
+                 Wyy=None,
+                 b0=None,
+                 b1=None,
+                 sigma=None,
+                 tauA=None,
+                 tauY=None,
+                 z=None,
+                 initial_type="zero_epsilon",
+                 method="euler",
+                 run_jacobian=False,
+                 **kwargs):
+        super().__init__(params,
+                         Way=Way,
+                         Wyy=Wyy,
+                         b0=b0,
+                         b1=b1,
+                         sigma=sigma,
+                         tauA=tauA,
+                         tauY=tauY,
+                         z=z,
+                         initial_type="zero_epsilon",
+                         method=method,
+                         run_jacobian=run_jacobian,
+                         **kwargs)
+    
+    @dynm_fun
+    def _dynamical_fun(self, t, x):
+        """
+        This function defines the dynamics of the ring ORGaNICs model.
+        :param x: The state of the network.
+        :return: The derivative of the network at the current time-step.
+        """
+        x = x.squeeze(0)  # Remove the extra dimension
+        y = x[0:self.Ny]
+        a = x[self.Ny:]
+        dydt = (1 / self.tauY) * (-y + self.b1 * self.z(t, **self.kwargs)
+                + (1 - torch.sqrt(torch.relu(a))) * (self.Wyy @ y))
+        dadt = (1 / self.tauA) * (-a + (self.sigma * self.b0) ** 2 + self.Way @ (torch.relu(a) * y ** 2))
         return torch.cat((dydt, dadt))
 
 
