@@ -4,6 +4,7 @@ import math
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import reverse_cuthill_mckee
 from scipy.signal import argrelextrema
+import scipy.signal as signal
 
 
 def dynm_fun(f):
@@ -163,3 +164,71 @@ def nanstd(input, dim=0, keepdim=False, unbiased=True):
     )
     
     return variance.sqrt()
+
+def is_diverging(trajectory, max_val=1e10):
+    """
+    Check if the trajectory is diverging (NaNs or excessively large values).
+    Args:
+        trajectory (torch.Tensor): Shape (time_steps, state_dim)
+        max_val (float): Threshold for detecting divergence
+    Returns:
+        bool: True if the trajectory is diverging
+    """
+    return torch.any(torch.isnan(trajectory)) or torch.any(torch.abs(trajectory) > max_val)
+
+def is_fixed_point(trajectory, last_percent=0.5, tol=1e-5):
+    """
+    Check if the trajectory has converged to a fixed point using the last percentage of the signal.
+    
+    Args:
+        trajectory (torch.Tensor): Shape (time_steps, state_dim)
+        last_percent (float): Fraction of the trajectory to use (0 < last_percent <= 1)
+        tol (float): Tolerance for detecting fixed points
+        
+    Returns:
+        bool: True if the trajectory is at a fixed point, False otherwise.
+    """
+    n_points = len(trajectory)
+    if n_points == 0 or not (0 < last_percent <= 1):
+        raise ValueError("last_percent must be between 0 and 1 (exclusive 0, inclusive 1) and trajectory cannot be empty.")
+    
+    window = int(n_points * last_percent)
+    # Ensure we have at least two points to compare
+    if window < 2:
+        return False
+    
+    last_window = trajectory[-window:]  # Shape (window, state_dim)
+    diffs = torch.abs(last_window[1:] - last_window[:-1])  # Shape (window-1, state_dim)
+    max_diff = torch.max(diffs)
+    
+    return max_diff < tol
+
+def is_periodic(signal_data, tol_period=1e-2, tolerance=1e-2):
+    # Find maxima and minima
+    maxima, _ = signal.find_peaks(signal_data)
+    minima, _ = signal.find_peaks(-signal_data)
+    
+    # Combine and sort all extrema
+    extrema = np.sort(np.concatenate((maxima, minima)))
+    
+    if len(extrema) < 4:  # Need at least two full cycles
+        return False
+    
+    # Calculate periods
+    periods = np.diff(extrema[::2])  # Every other extremum for full cycles
+
+    mean_interval = np.mean(periods)
+    if mean_interval == 0:
+        return False
+    rel_std_interval = np.std(periods) / mean_interval
+    if rel_std_interval >= tol_period:
+        return False
+    
+    # Check amplitudes
+    amplitudes = np.abs(signal_data[extrema[1:]] - signal_data[extrema[:-1]])
+    
+    # Check if all amplitudes are the same
+    if not np.allclose(amplitudes, np.mean(amplitudes), rtol=tolerance):
+        return False
+    
+    return True
