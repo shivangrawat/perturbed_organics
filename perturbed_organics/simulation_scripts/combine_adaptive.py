@@ -49,7 +49,7 @@ print(f"Combining partial results from {num_tasks} tasks")
 
 # Load and combine partial results
 for task_id in range(num_tasks):
-    condition_task = torch.load(os.path.join(path, f'condition_{task_id}.pt'))
+    condition_task = torch.load(os.path.join(path, f'condition_task_{task_id}.pt'))
     spectral_radius_task = torch.load(os.path.join(path, f'spectral_radius_task_{task_id}.pt'))
     norm_fixed_point_y_task = torch.load(os.path.join(path, f'norm_fixed_point_y_task_{task_id}.pt'))
     norm_fixed_point_a_task = torch.load(os.path.join(path, f'norm_fixed_point_a_task_{task_id}.pt'))
