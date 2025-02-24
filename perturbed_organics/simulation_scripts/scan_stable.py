@@ -35,6 +35,7 @@ parser.add_argument("--NUM_TASKS", type=int, default=1, help="Number of tasks")
 parser.add_argument("--MODEL_NAME", type=str, default="localized", help="Model name")
 parser.add_argument("--MATRIX_TYPE", type=str, default="goe_symmetric", help="Random matrix type")
 parser.add_argument("--initial_type", type=str, default="norm", help="Initial condition for simulation")
+parser.add_argument("--input_scale", type=str, default="log-scale", help="How to sample the input strength")
 parser.add_argument("--data_save_loc", type=str, default="/vast/sr6364/perturbed_organics/data", help="Location to save data")
 parser.add_argument("--extra_file_name", type=str, default="", help="Extra file name")
 parser.add_argument("--N", type=int, default=100, help="Number of neurons")
@@ -75,6 +76,7 @@ print(f"Task ID: {task_id}")
 # arguments of the model parameters
 model_name = args.MODEL_NAME
 matrix_type = args.MATRIX_TYPE
+input_scale = args.input_scale
 data_save_loc = args.data_save_loc
 extra_file_name = args.extra_file_name
 initial_type = args.initial_type
@@ -93,8 +95,11 @@ max_delta = args.max_delta
 
 # Define the scan parameters
 delta_range = np.linspace(min_delta, max_delta, num_delta)
-# input_range = np.linspace(min_input, max_input, num_input)
-input_range = np.logspace(np.log10(min_input), np.log10(max_input), num_input)
+
+if input_scale == "log-scale":
+    input_range = np.logspace(np.log10(min_input), np.log10(max_input), num_input)
+else:
+    input_range = np.linspace(min_input, max_input, num_input)
 
 # define the path of the folder to save the results in
 folder_name = (
@@ -116,6 +121,8 @@ if task_id == 0:
     params_to_save = {
         "model_name": model_name,
         "matrix_type": matrix_type,
+        "initial_type": initial_type,
+        "input_scale": input_scale,
         "N": N,
         "s": s,
         "mu": mu,

@@ -14,9 +14,11 @@ default_params = {
     # 'MATRIX_TYPE': 'power_law',
     # "initial_type": "norm",
     "initial_type": "first_order",
+    "input_scale": "log-scale",
+    # "input_scale": "linear",
     "N": 100,
     "s": 100,
-    "mu": 0.1,
+    "mu": 0.0,
     "sigma": 0.1,
     "b0": 1.0,
     "b1": 1.0,
@@ -26,12 +28,12 @@ default_params = {
     "num_delta": 100,
     "num_input": 100,
     "min_delta": 0.0,
-    "max_delta": 0.4,
+    "max_delta": 0.8,
     "min_input": 0.01,
     "max_input": 1.0,
     "NUM_TASKS": 100,
     "JOB_NAME": "param_scan",
-    "TIME": "2:00:00",
+    "TIME": "15:00:00",
     "CPUS": 4,
     "MEMORY": "16GB",
     "EMAIL": "sr6364@nyu.edu",
@@ -62,7 +64,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 
 ##### Change things here for a better filename
-data_save_loc = f"/vast/sr6364/perturbed_organics/data/phase_diagram/{args.MODEL_NAME}"
+data_save_loc = f"/vast/sr6364/perturbed_organics/data/adaptive_phase_diagram/{args.MODEL_NAME}"
 # extra_file_name = f"delta_{args.min_delta}"
 extra_file_name = f"phase_diagram"
 
@@ -94,6 +96,7 @@ python {args.SCRIPT_NAME} \\
     --MODEL_NAME {args.MODEL_NAME} \\
     --MATRIX_TYPE {args.MATRIX_TYPE} \\
     --initial_type {args.initial_type} \\
+    --input_scale {args.input_scale} \\
     --N {args.N} \\
     --s {args.s} \\
     --mu {args.mu} \\
