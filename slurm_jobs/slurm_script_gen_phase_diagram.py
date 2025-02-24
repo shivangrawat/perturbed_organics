@@ -35,7 +35,7 @@ default_params = {
     "CPUS": 4,
     "MEMORY": "16GB",
     "EMAIL": "sr6364@nyu.edu",
-    "SCRIPT_NAME": "scan_stable.py",
+    "SCRIPT_NAME": "scan_stable_adaptive.py",
 }
 
 # Set up argument parser
@@ -138,7 +138,7 @@ combine_script = f"""#!/bin/bash
 #SBATCH --output=job.%j.out
 
 singularity exec --overlay /scratch/sr6364/overlay-files/overlay-50G-10M.ext3:ro /scratch/work/public/singularity/cuda11.8.86-cudnn8.7-devel-ubuntu22.04.2.sif /bin/bash -c \
-'source /ext3/env.sh; conda activate feed-r-conda; cd /home/sr6364/python_scripts/perturbed_organics/perturbed_organics/simulation_scripts; python combine_plot.py \\
+'source /ext3/env.sh; conda activate feed-r-conda; cd /home/sr6364/python_scripts/perturbed_organics/perturbed_organics/simulation_scripts; python combine_adaptive.py \\
 --folder_loc {folder_loc} \\
 --folder_name {folder_name} '
 """

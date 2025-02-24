@@ -49,7 +49,7 @@ print(f"Combining partial results from {num_tasks} tasks")
 
 # Load and combine partial results
 for task_id in range(num_tasks):
-    condition_task = torch.load(os.path.join(path, f'bool_stable_task_{task_id}.pt'))
+    condition_task = torch.load(os.path.join(path, f'condition_{task_id}.pt'))
     spectral_radius_task = torch.load(os.path.join(path, f'spectral_radius_task_{task_id}.pt'))
     norm_fixed_point_y_task = torch.load(os.path.join(path, f'norm_fixed_point_y_task_{task_id}.pt'))
     norm_fixed_point_a_task = torch.load(os.path.join(path, f'norm_fixed_point_a_task_{task_id}.pt'))
@@ -59,7 +59,7 @@ for task_id in range(num_tasks):
     first_order_perturb_a_task = torch.load(os.path.join(path, f'first_order_perturb_a_task_{task_id}.pt'))
     eigvals_J_task = torch.load(os.path.join(path, f'eigvals_J_task_{task_id}.pt'))
 
-    # Find indices where bool_stable_task != -1
+    # Find indices where condition_task != -1
     indices = (condition_task != -1).nonzero(as_tuple=True)
     condition[indices] = condition_task[indices]
     spectral_radius[indices] = spectral_radius_task[indices]
