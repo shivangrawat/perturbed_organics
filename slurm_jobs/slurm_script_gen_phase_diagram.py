@@ -5,8 +5,8 @@ import os
 
 # Define default parameters
 default_params = {
-    "MODEL_NAME": "localized",
-    # 'MODEL_NAME': 'delocalized',
+    # "MODEL_NAME": "localized",
+    'MODEL_NAME': 'delocalized',
     # 'MODEL_NAME': 'random',
     # 'MODEL_NAME': 'gaussian',
     # 'MATRIX_TYPE': 'goe',
@@ -14,8 +14,8 @@ default_params = {
     # 'MATRIX_TYPE': 'power_law',
     # "initial_type": "norm",
     "initial_type": "first_order",
-    "input_scale": "log-scale",
-    # "input_scale": "linear",
+    # "input_scale": "log-scale",
+    "input_scale": "linear",
     "N": 100,
     "s": 100,
     "mu": 0.0,
@@ -28,7 +28,7 @@ default_params = {
     "num_delta": 100,
     "num_input": 100,
     "min_delta": 0.0,
-    "max_delta": 0.8,
+    "max_delta": 2.0,
     "min_input": 0.01,
     "max_input": 1.0,
     "NUM_TASKS": 100,
@@ -66,7 +66,7 @@ os.makedirs(output_dir, exist_ok=True)
 ##### Change things here for a better filename
 data_save_loc = f"/vast/sr6364/perturbed_organics/data/adaptive_phase_diagram/{args.MODEL_NAME}"
 # extra_file_name = f"delta_{args.min_delta}"
-extra_file_name = f"phase_diagram"
+extra_file_name = f"phase_diagram_{args.input_scale}"
 
 # Generate the filename based on selected parameters
 filename = os.path.join(

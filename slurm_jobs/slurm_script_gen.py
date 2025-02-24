@@ -15,6 +15,7 @@ default_params = {
     # "initial_type": "norm",
     "initial_type": "first_order",
     "input_scale": "log-scale",
+    # "input_scale": "linear",
     "N": 100,
     "s": 100,
     "mu": 0.1,
