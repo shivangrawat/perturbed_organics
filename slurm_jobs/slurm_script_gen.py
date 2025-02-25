@@ -14,11 +14,11 @@ default_params = {
     # 'MATRIX_TYPE': 'power_law',
     # "initial_type": "norm",
     "initial_type": "first_order",
-    "input_scale": "log-scale",
-    # "input_scale": "linear",
+    # "input_scale": "log-scale",
+    "input_scale": "linear",
     "N": 100,
     "s": 100,
-    "mu": 0.1,
+    "mu": 0.0,
     "sigma": 0.1,
     "b0": 1.0,
     "b1": 1.0,
@@ -27,8 +27,8 @@ default_params = {
     "num_trials": 500,
     "num_delta": 1,
     "num_input": 200,
-    "min_delta": 0.8,
-    "max_delta": 1.0,
+    "min_delta": 1.0,
+    "max_delta": 5.0,
     "min_input": 0.01,
     "max_input": 1.0,
     "NUM_TASKS": 40,
@@ -65,7 +65,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 ##### Change things here for a better filename
 data_save_loc = f"/vast/sr6364/perturbed_organics/data/adaptive_main/{args.MODEL_NAME}"
-extra_file_name = f"delta_{args.min_delta}"
+extra_file_name = f"delta_{args.min_delta}_{args.input_scale}"
 # extra_file_name = f"phase_diagram"
 
 # Generate the filename based on selected parameters
