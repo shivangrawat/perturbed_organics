@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-
 import argparse
 import os
 
 # Define default parameters
 default_params = {
-    "MODEL_NAME": "localized",
-    # 'MODEL_NAME': 'delocalized',
+    # "MODEL_NAME": "localized",
+    'MODEL_NAME': 'delocalized',
     # 'MODEL_NAME': 'random',
     # 'MODEL_NAME': 'gaussian',
     # 'MATRIX_TYPE': 'goe',
@@ -14,8 +13,8 @@ default_params = {
     # 'MATRIX_TYPE': 'power_law',
     # "initial_type": "norm",
     "initial_type": "first_order",
-    "input_scale": "log-scale",
-    # "input_scale": "linear",
+    # "input_scale": "log-scale",
+    "input_scale": "linear",
     "N": 100,
     "s": 100,
     "mu": 0.0,
@@ -28,7 +27,7 @@ default_params = {
     "num_delta": 100,
     "num_input": 100,
     "min_delta": 0.0,
-    "max_delta": 2.0,
+    "max_delta": 5.0,
     "min_input": 0.01,
     "max_input": 1.0,
     "NUM_TASKS": 100,
