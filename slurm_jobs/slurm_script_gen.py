@@ -27,7 +27,7 @@ default_params = {
     "num_trials": 500,
     "num_delta": 1,
     "num_input": 200,
-    "min_delta": 1.0,
+    "min_delta": 0.4,
     "max_delta": 5.0,
     "min_input": 0.01,
     "max_input": 1.0,
@@ -66,7 +66,6 @@ os.makedirs(output_dir, exist_ok=True)
 ##### Change things here for a better filename
 data_save_loc = f"/vast/sr6364/perturbed_organics/data/adaptive_main/{args.MODEL_NAME}"
 extra_file_name = f"delta_{args.min_delta}_{args.input_scale}"
-# extra_file_name = f"phase_diagram"
 
 # Generate the filename based on selected parameters
 filename = os.path.join(
