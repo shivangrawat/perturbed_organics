@@ -18,12 +18,14 @@ import warnings
 import shutil
 import json
 
-torch.set_default_dtype(torch.float64)
+# Define the torch data type and set default dtype
+torch_data_type = torch.float64
+torch.set_default_dtype(torch_data_type)
 
 # Import the arguments
 parser = argparse.ArgumentParser(description="Sparse Matrix Stability Scan")
 
-# arguments for the job array code
+# Arguments for the job array code
 parser.add_argument(
     "--TASK_ID",
     type=int,
@@ -32,8 +34,8 @@ parser.add_argument(
 )
 parser.add_argument("--NUM_TASKS", type=int, default=1, help="Number of tasks")
 
-# parameters of the model
-parser.add_argument("--MODEL_NAME", type=str, default="localized", help="Model name")
+# Parameters of the model
+parser.add_argument("--MODEL_NAME", type=str, default="delocalized", help="Model name")
 parser.add_argument("--MATRIX_TYPE", type=str, default="goe_symmetric", help="Random matrix type")
 parser.add_argument("--initial_type", type=str, default="norm", help="Initial condition for simulation")
 parser.add_argument("--input_scale", type=str, default="log-scale", help="How to sample the input strength")
@@ -45,36 +47,28 @@ parser.add_argument("--mu", type=float, default=0.0, help="Mean of the distribut
 parser.add_argument("--sigma", type=float, default=0.1, help="Sigma value")
 parser.add_argument("--b0", type=float, default=0.5, help="Input gain for a")
 parser.add_argument("--b1", type=float, default=0.5, help="Input gain for y")
-parser.add_argument("--tauA", type=float, default=0.002, help="Time constant fot a")
+parser.add_argument("--tauA", type=float, default=0.002, help="Time constant for a")
 parser.add_argument("--tauY", type=float, default=0.002, help="Time constant for y")
 
-# parameters of simulation
+# Parameters of simulation
 parser.add_argument("--num_trials", type=int, default=10, help="Number of trials")
 parser.add_argument("--num_delta", type=int, default=10, help="Number of delta steps")
 parser.add_argument("--num_input", type=int, default=10, help="Number of input steps")
-parser.add_argument(
-    "--min_delta", type=float, default=0.0, help="Minimum value of the parameter delta"
-)
-parser.add_argument(
-    "--max_delta", type=float, default=5.0, help="Maximum value of the parameter delta"
-)
-parser.add_argument(
-    "--min_input", type=float, default=0.01, help="Minimum value of the parameter input"
-)
-parser.add_argument(
-    "--max_input", type=float, default=5.0, help="Maximum value of the parameter input"
-)
+parser.add_argument("--min_delta", type=float, default=0.0, help="Minimum value of the parameter delta")
+parser.add_argument("--max_delta", type=float, default=5.0, help="Maximum value of the parameter delta")
+parser.add_argument("--min_input", type=float, default=0.01, help="Minimum value of the parameter input")
+parser.add_argument("--max_input", type=float, default=5.0, help="Maximum value of the parameter input")
 
-# parse the arguments
+# Parse the arguments
 args = parser.parse_args()
 
-# argument sof the job array
+# Arguments for the job array
 task_id = args.TASK_ID
 num_tasks = args.NUM_TASKS
 
 print(f"Task ID: {task_id}")
 
-# arguments of the model parameters
+# Arguments of the model parameters
 model_name = args.MODEL_NAME
 matrix_type = args.MATRIX_TYPE
 input_scale = args.input_scale
@@ -85,7 +79,7 @@ N = args.N
 s = args.s
 mu = args.mu
 
-# arguments of the simulation
+# Arguments of the simulation
 num_delta = args.num_delta
 num_input = args.num_input
 num_trials = args.num_trials
@@ -96,13 +90,12 @@ max_delta = args.max_delta
 
 # Define the scan parameters
 delta_range = np.linspace(min_delta, max_delta, num_delta)
-
 if input_scale == "log-scale":
     input_range = np.logspace(np.log10(min_input), np.log10(max_input), num_input)
 else:
     input_range = np.linspace(min_input, max_input, num_input)
 
-# define the path of the folder to save the results in
+# Define the folder path to save results
 folder_name = (
     model_name
     + "_"
@@ -118,7 +111,6 @@ if task_id == 0:
     if os.path.exists(path):
         shutil.rmtree(path)
     os.makedirs(path)
-    # Save parameters to a JSON file in the folder
     params_to_save = {
         "model_name": model_name,
         "matrix_type": matrix_type,
@@ -146,22 +138,19 @@ if task_id == 0:
     with open(param_file_path, "w") as f:
         json.dump(params_to_save, f, indent=4)
 
-
 device = torch.device("cpu")
 
 # Define the parameters of the ORGaNICs
 params = {"N_y": N, "N_a": N, "eta": 0.02, "noise_type": "additive"}
-b0 = args.b0 * torch.ones(N)
-b1 = args.b1 * torch.ones(N)
-sigma = torch.tensor([args.sigma])
-tauA = args.tauA + 0 * torch.abs(torch.randn(N) * 0.001)
-tauY = args.tauY + 0 * torch.abs(torch.randn(N) * 0.001)
-# Wyy = torch.eye(N)
-Way = torch.ones(N, N)
+b0 = args.b0 * torch.ones(N, dtype=torch_data_type)
+b1 = args.b1 * torch.ones(N, dtype=torch_data_type)
+sigma = torch.tensor([args.sigma], dtype=torch_data_type)
+tauA = args.tauA + 0 * torch.abs(torch.randn(N, dtype=torch_data_type) * 0.001)
+tauY = args.tauY + 0 * torch.abs(torch.randn(N, dtype=torch_data_type) * 0.001)
+Way = torch.ones(N, N, dtype=torch_data_type)
 
 # Create list of parameter combinations
 param_combinations = [(i, j) for i in range(num_delta) for j in range(num_input)]
-
 # Split parameter combinations among tasks
 param_chunks = np.array_split(param_combinations, num_tasks)
 my_params = param_chunks[task_id]
@@ -170,13 +159,13 @@ my_params = param_chunks[task_id]
 def run_trial(i, j, k, delta, input):
     # Initialize variables for the trial
 
-    z = utils.make_input_drive(N=N, input_type=model_name, input_norm=input)
-
-    Wyy = torch.eye(N) + utils.generate_matrix(
-        N=N, matrix_type=matrix_type, s=s, mu=mu, delta=delta
+    # Pass the torch_data_type to the util function calls
+    z = utils.make_input_drive(N=N, input_type=model_name, input_norm=input, dtype=torch_data_type)
+    Wyy = torch.eye(N, dtype=torch_data_type) + utils.generate_matrix(
+        N=N, matrix_type=matrix_type, s=s, mu=mu, delta=delta, dtype=torch_data_type
     )
 
-    # find the spectral radius of Wyy
+    # Find the spectral radius of Wyy
     eigvals = torch.linalg.eigvals(Wyy)
     spectral_radius = torch.max(torch.abs(eigvals))
 
@@ -198,21 +187,20 @@ def run_trial(i, j, k, delta, input):
     y_s0, a_s0 = model.analytical_ss()
     y_s1, a_s1 = model.first_order_correction()
 
-    #### run adaptive simulation scheme and find the dynamics
+    # Run adaptive simulation scheme and find the dynamics
 
-    # define the time vector
+    # Define the time vector
     tau_min = min(torch.min(tauA), torch.min(tauY))
-    tau_max= max(torch.max(tauA), torch.max(tauY))
+    tau_max = max(torch.max(tauA), torch.max(tauY))
     chunk_time = 100 * tau_max  # Simulate in chunks of 100 * tau_max
-    dt = 0.05 * tau_min # defines the timestep of simulation
+    dt = 0.05 * tau_min  # Defines the timestep of simulation
     points = int(chunk_time / dt)  # Number of points per chunk
-    t_chunk = torch.linspace(0, chunk_time, points)
+    t_chunk = torch.linspace(0, chunk_time, points, dtype=torch_data_type)
 
     max_loops = 20
+    condition = 0  # 0: not met, 1: diverging, 2: fixed point, 3: periodic
 
-    condition = 0 # 0: not met, 1: diverging, 2: fixed point, 3: periodic
-
-    # define the model for simulation
+    # Define the model for simulation
     y0 = model.inital_conditions(initial_type=initial_type)
     sim_obj = sim_solution(model)
 
@@ -231,7 +219,7 @@ def run_trial(i, j, k, delta, input):
             break
 
     if condition == 2:
-        # find the jacobian and its eigenvalue
+        # Find the jacobian and its eigenvalue
         ss = traj_segment[-1, :]
         J, _ = model.jacobian_autograd(ss=ss)
         eigvals_J = torch.linalg.eigvals(J)
@@ -241,7 +229,7 @@ def run_trial(i, j, k, delta, input):
             y_s0.to(torch.float16),
             a_s0.to(torch.float16),
             ss[0:N].to(torch.float16),
-            ss[N : 2 * N].to(torch.float16),
+            ss[N: 2 * N].to(torch.float16),
             y_s1.to(torch.float16),
             a_s1.to(torch.float16),
             eigvals_J,
@@ -258,14 +246,12 @@ def run_trial(i, j, k, delta, input):
             a_s1.to(torch.float16),
             None,
         )
-        
+
 
 def run_trial_and_collect(i, j, k):
     delta = delta_range[i]
     input = input_range[j]
-    condition, spec_radius, y_s0, a_s0, y_s_actual, a_s_actual, y_s1, a_s1, eigvals_J = (
-        run_trial(i, j, k, delta, input)
-    )
+    condition, spec_radius, y_s0, a_s0, y_s_actual, a_s_actual, y_s1, a_s1, eigvals_J = run_trial(i, j, k, delta, input)
     return (
         i,
         j,
@@ -289,52 +275,19 @@ results = Parallel(n_jobs=-1, verbose=2)(
 )
 
 # Collect and save partial results
-condition_task = torch.full(
-    (num_delta, num_input, num_trials), fill_value=-1, dtype=torch.int8
-)
-spectral_radius_task = torch.full(
-    (num_delta, num_input, num_trials), fill_value=float("nan"), dtype=torch.float16
-)
-norm_fixed_point_y_task = torch.full(
-    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16
-)
-norm_fixed_point_a_task = torch.full(
-    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16
-)
-actual_fixed_point_y_task = torch.full(
-    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16
-)
-actual_fixed_point_a_task = torch.full(
-    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16
-)
-first_order_perturb_y_task = torch.full(
-    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16
-)
-first_order_perturb_a_task = torch.full(
-    (num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16
-)
-eigvals_J_task = torch.full(
-    (num_delta, num_input, num_trials, 2 * N),
-    fill_value=float("nan"),
-    dtype=torch.complex64,
-)
+condition_task = torch.full((num_delta, num_input, num_trials), fill_value=-1, dtype=torch.int8)
+spectral_radius_task = torch.full((num_delta, num_input, num_trials), fill_value=float("nan"), dtype=torch.float16)
+norm_fixed_point_y_task = torch.full((num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16)
+norm_fixed_point_a_task = torch.full((num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16)
+actual_fixed_point_y_task = torch.full((num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16)
+actual_fixed_point_a_task = torch.full((num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16)
+first_order_perturb_y_task = torch.full((num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16)
+first_order_perturb_a_task = torch.full((num_delta, num_input, num_trials, N), fill_value=float("nan"), dtype=torch.float16)
+eigvals_J_task = torch.full((num_delta, num_input, num_trials, 2 * N), fill_value=float("nan"), dtype=torch.complex64)
 
 # Update the results arrays
 for res in results:
-    (
-        i,
-        j,
-        k,
-        condition,
-        spec_radius,
-        y_s0,
-        a_s0,
-        y_s_actual,
-        a_s_actual,
-        y_s1,
-        a_s1,
-        eigvals_J,
-    ) = res
+    (i, j, k, condition, spec_radius, y_s0, a_s0, y_s_actual, a_s_actual, y_s1, a_s1, eigvals_J) = res
     condition_task[i, j, k] = condition
     spectral_radius_task[i, j, k] = spec_radius
     norm_fixed_point_y_task[i, j, k] = y_s0
@@ -347,39 +300,16 @@ for res in results:
         actual_fixed_point_a_task[i, j, k] = a_s_actual
         eigvals_J_task[i, j, k] = eigvals_J
 
-# delete results to save memory
+# Delete results to save memory
 del results
 
 # Save partial results
 torch.save(condition_task, os.path.join(path, f"condition_task_{task_id}.pt"))
-torch.save(
-    spectral_radius_task, os.path.join(path, f"spectral_radius_task_{task_id}.pt")
-)
-torch.save(
-    norm_fixed_point_y_task,
-    os.path.join(path, f"norm_fixed_point_y_task_{task_id}.pt"),
-)
-torch.save(
-    norm_fixed_point_a_task,
-    os.path.join(path, f"norm_fixed_point_a_task_{task_id}.pt"),
-)
-torch.save(
-    actual_fixed_point_y_task,
-    os.path.join(path, f"actual_fixed_point_y_task_{task_id}.pt"),
-)
-torch.save(
-    actual_fixed_point_a_task,
-    os.path.join(path, f"actual_fixed_point_a_task_{task_id}.pt"),
-)
-torch.save(
-    first_order_perturb_y_task,
-    os.path.join(path, f"first_order_perturb_y_task_{task_id}.pt"),
-)
-torch.save(
-    first_order_perturb_a_task,
-    os.path.join(path, f"first_order_perturb_a_task_{task_id}.pt"),
-)
-torch.save(
-    eigvals_J_task,
-    os.path.join(path, f"eigvals_J_task_{task_id}.pt"),
-)
+torch.save(spectral_radius_task, os.path.join(path, f"spectral_radius_task_{task_id}.pt"))
+torch.save(norm_fixed_point_y_task, os.path.join(path, f"norm_fixed_point_y_task_{task_id}.pt"))
+torch.save(norm_fixed_point_a_task, os.path.join(path, f"norm_fixed_point_a_task_{task_id}.pt"))
+torch.save(actual_fixed_point_y_task, os.path.join(path, f"actual_fixed_point_y_task_{task_id}.pt"))
+torch.save(actual_fixed_point_a_task, os.path.join(path, f"actual_fixed_point_a_task_{task_id}.pt"))
+torch.save(first_order_perturb_y_task, os.path.join(path, f"first_order_perturb_y_task_{task_id}.pt"))
+torch.save(first_order_perturb_a_task, os.path.join(path, f"first_order_perturb_a_task_{task_id}.pt"))
+torch.save(eigvals_J_task, os.path.join(path, f"eigvals_J_task_{task_id}.pt"))
