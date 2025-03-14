@@ -18,6 +18,7 @@ import warnings
 import shutil
 import json
 
+torch.set_default_dtype(torch.float64)
 
 # Import the arguments
 parser = argparse.ArgumentParser(description="Sparse Matrix Stability Scan")
