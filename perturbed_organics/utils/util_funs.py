@@ -178,7 +178,7 @@ def is_diverging(trajectory, max_val=1e10):
     return torch.any(torch.isnan(trajectory)) or torch.any(torch.abs(trajectory) > max_val)
 
 
-def is_fixed_point(trajectory, last_percent=0.5, tol=1e-5):
+def is_fixed_point(trajectory, last_percent=0.5, tol=1e-6):
     """
     Check if the trajectory has converged to a fixed point using the last percentage of the signal.
     

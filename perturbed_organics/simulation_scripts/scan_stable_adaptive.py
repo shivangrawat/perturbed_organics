@@ -149,11 +149,13 @@ tauA = args.tauA + 0 * torch.abs(torch.randn(N, dtype=torch_data_type) * 0.001)
 tauY = args.tauY + 0 * torch.abs(torch.randn(N, dtype=torch_data_type) * 0.001)
 Way = torch.ones(N, N, dtype=torch_data_type)
 
-# Create list of parameter combinations
-param_combinations = [(i, j) for i in range(num_delta) for j in range(num_input)]
-# Split parameter combinations among tasks
-param_chunks = np.array_split(param_combinations, num_tasks)
-my_params = param_chunks[task_id]
+# Create a full list of job indices covering all (delta, input, trial) combinations
+jobs = [(i, j, k) for i in range(num_delta)
+                 for j in range(num_input)
+                 for k in range(num_trials)]
+# Split the jobs among tasks
+jobs_chunks = np.array_split(jobs, num_tasks)
+my_jobs = jobs_chunks[task_id]  # Each task processes its own subset
 
 
 def run_trial(i, j, k, delta, input):
@@ -267,12 +269,11 @@ def run_trial_and_collect(i, j, k):
         eigvals_J,
     )
 
-
+# Run the jobs assigned to this task
 results = Parallel(n_jobs=-1, verbose=2)(
-    delayed(run_trial_and_collect)(i, j, k)
-    for i, j in my_params
-    for k in range(num_trials)
+    delayed(run_trial_and_collect)(i, j, k) for i, j, k in my_jobs
 )
+
 
 # Collect and save partial results
 condition_task = torch.full((num_delta, num_input, num_trials), fill_value=-1, dtype=torch.int8)
