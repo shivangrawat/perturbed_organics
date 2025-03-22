@@ -13,8 +13,8 @@ default_params = {
     # 'MATRIX_TYPE': 'power_law',
     # "initial_type": "norm",
     "initial_type": "first_order",
-    "input_scale": "log-scale",
-    # "input_scale": "linear",
+    "delta_scale": "log-scale",
+    # "delta_scale": "linear",
     "N": 100,
     "s": 100,
     "mu": 0.0,
@@ -26,8 +26,8 @@ default_params = {
     "num_trials": 100,
     "num_delta": 200,
     "num_input": 200,
-    "min_delta": 0.0,
-    "max_delta": 0.5,
+    "min_delta": 0.01,
+    "max_delta": 3.0,
     "min_input": 0.01,
     "max_input": 1.0,
     "NUM_TASKS": 100,
@@ -63,9 +63,9 @@ os.makedirs(output_dir, exist_ok=True)
 
 
 ##### Change things here for a better filename
-data_save_loc = f"/scratch/sr6364/perturbed_organics/data/adaptive_phase_diagram/{args.MODEL_NAME}"
+data_save_loc = f"/scratch/sr6364/perturbed_organics/data/adaptive_phase_diagram_100/{args.MODEL_NAME}"
 # extra_file_name = f"delta_{args.min_delta}"
-extra_file_name = f"phase_diagram_{args.input_scale}"
+extra_file_name = f"phase_diagram_{args.delta_scale}"
 
 # Generate the filename based on selected parameters
 filename = os.path.join(
@@ -95,7 +95,7 @@ python {args.SCRIPT_NAME} \\
     --MODEL_NAME {args.MODEL_NAME} \\
     --MATRIX_TYPE {args.MATRIX_TYPE} \\
     --initial_type {args.initial_type} \\
-    --input_scale {args.input_scale} \\
+    --delta_scale {args.delta_scale} \\
     --N {args.N} \\
     --s {args.s} \\
     --mu {args.mu} \\
