@@ -173,7 +173,35 @@ def run_trial(i, j, k, delta, input):
     spectral_radius = torch.max(torch.abs(eigvals))
 
     # Instantiate the model
-    model = organics.ORGaNICs2Dgeneral(
+    # model = organics.ORGaNICs2Dgeneral(
+    #     params=params,
+    #     b0=b0,
+    #     b1=b1,
+    #     sigma=sigma,
+    #     tauA=tauA,
+    #     tauY=tauY,
+    #     Wyy=Wyy,
+    #     Way=Way,
+    #     z=z,
+    #     initial_type=initial_type,
+    #     run_jacobian=False,
+    # )
+
+    # model = organics.ORGaNICs2DgeneralRectified(
+    #     params=params,
+    #     b0=b0,
+    #     b1=b1,
+    #     sigma=sigma,
+    #     tauA=tauA,
+    #     tauY=tauY,
+    #     Wyy=Wyy,
+    #     Way=Way,
+    #     z=z,
+    #     initial_type=initial_type,
+    #     run_jacobian=False,
+    # )
+
+    model = organics.ORGaNICs2DgeneralRectifiedRecurrence(
         params=params,
         b0=b0,
         b1=b1,

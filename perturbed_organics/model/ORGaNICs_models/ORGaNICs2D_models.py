@@ -204,8 +204,10 @@ class ORGaNICs2DgeneralRectified(ORGaNICs2Dgeneral):
                  tauA=None,
                  tauY=None,
                  z=None,
+                 initial_type="norm",
                  method="euler",
-                 run_jacobian=True):
+                 run_jacobian=True,
+                 **kwargs):
         super().__init__(params,
                          Way=Way,
                          Wyy=Wyy,
@@ -215,8 +217,10 @@ class ORGaNICs2DgeneralRectified(ORGaNICs2Dgeneral):
                          tauA=tauA,
                          tauY=tauY,
                          z=z,
+                         initial_type=initial_type,
                          method=method,
-                         run_jacobian=run_jacobian)
+                         run_jacobian=run_jacobian,
+                         **kwargs)
     
     @dynm_fun
     def _dynamical_fun(self, t, x):
@@ -230,6 +234,50 @@ class ORGaNICs2DgeneralRectified(ORGaNICs2Dgeneral):
         a = x[self.Ny:]
         dydt = (1 / self.tauY) * (-y + self.b1 * self.z
                 + (1 - torch.sqrt(torch.relu(a))) * (self.Wyy @ torch.relu(y)))
+        dadt = (1 / self.tauA) * (-a + (self.sigma * self.b0) ** 2 + self.Way @ (torch.relu(a) * torch.relu(y) ** 2))
+        return torch.cat((dydt, dadt))
+
+class ORGaNICs2DgeneralRectifiedRecurrence(ORGaNICs2Dgeneral):
+    def __init__(self, 
+                 params,
+                 Way=None, 
+                 Wyy=None,
+                 b0=None,
+                 b1=None,
+                 sigma=None,
+                 tauA=None,
+                 tauY=None,
+                 z=None,
+                 initial_type="norm",
+                 method="euler",
+                 run_jacobian=True,
+                 **kwargs):
+        super().__init__(params,
+                         Way=Way,
+                         Wyy=Wyy,
+                         b0=b0,
+                         b1=b1,
+                         sigma=sigma,
+                         tauA=tauA,
+                         tauY=tauY,
+                         z=z,
+                         initial_type=initial_type,
+                         method=method,
+                         run_jacobian=run_jacobian,
+                         **kwargs)
+    
+    @dynm_fun
+    def _dynamical_fun(self, t, x):
+        """
+        This function defines the dynamics of the ring ORGaNICs model.
+        :param x: The state of the network.
+        :return: The derivative of the network at the current time-step.
+        """
+        x = x.squeeze(0)  # Remove the extra dimension
+        y = x[0:self.Ny]
+        a = x[self.Ny:]
+        dydt = (1 / self.tauY) * (-y + self.b1 * self.z
+                + (1 - torch.sqrt(torch.relu(a))) * (torch.relu(self.Wyy @ y)))
         dadt = (1 / self.tauA) * (-a + (self.sigma * self.b0) ** 2 + self.Way @ (torch.relu(a) * torch.relu(y) ** 2))
         return torch.cat((dydt, dadt))
 
