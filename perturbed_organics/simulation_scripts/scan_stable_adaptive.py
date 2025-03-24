@@ -245,7 +245,7 @@ def run_trial(i, j, k, delta, input):
         elif utils.is_fixed_point(traj_segment):
             condition = 2
             break
-        elif utils.is_periodic(traj_segment[:, 0].detach().numpy()):
+        elif utils.is_periodic(np.linalg.norm(traj_segment.detach().numpy()[:, :N], axis=1)):
             condition = 3
             break
 
