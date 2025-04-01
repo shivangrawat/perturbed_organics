@@ -27,7 +27,7 @@ default_params = {
     "num_delta": 200,
     "num_input": 200,
     "min_delta": 0.01,
-    "max_delta": 3.0,
+    "max_delta": 10.0,
     "min_input": 0.01,
     "max_input": 1.0,
     "NUM_TASKS": 100,
