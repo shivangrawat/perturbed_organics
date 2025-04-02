@@ -27,7 +27,7 @@ default_params = {
     "num_trials": 50000,
     "num_delta": 1,
     "num_input": 1,
-    "min_delta": 0.1,
+    "min_delta": 0.02,
     "max_delta": 5.0,
     "min_input": 0.01,
     "max_input": 1.0,
@@ -64,7 +64,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 
 ##### Change things here for a better filename
-data_save_loc = f"/vast/sr6364/perturbed_organics/data/adaptive_main_eigval/{args.MODEL_NAME}"
+data_save_loc = f"/vast/sr6364/perturbed_organics/data/adaptive_main_eigval_N500/{args.MODEL_NAME}"
 extra_file_name = f"delta_{args.min_delta}_{args.delta_scale}"
 
 # Generate the filename based on selected parameters
