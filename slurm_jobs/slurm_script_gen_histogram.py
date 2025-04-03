@@ -16,8 +16,8 @@ default_params = {
     "initial_type": "first_order",
     "delta_scale": "log-scale",
     # "delta_scale": "linear",
-    "N": 500,
-    "s": 500,
+    "N": 1000,
+    "s": 1000,
     "mu": 0.0,
     "sigma": 0.1,
     "b0": 1.0,
@@ -27,13 +27,13 @@ default_params = {
     "num_trials": 50000,
     "num_delta": 1,
     "num_input": 1,
-    "min_delta": 0.02,
+    "min_delta": 0.6,
     "max_delta": 5.0,
     "min_input": 0.01,
     "max_input": 1.0,
     "NUM_TASKS": 40,
     "JOB_NAME": "param_scan",
-    "TIME": "2:00:00",
+    "TIME": "4:00:00",
     "CPUS": 4,
     "MEMORY": "32GB",
     "EMAIL": "sr6364@nyu.edu",
@@ -64,7 +64,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 
 ##### Change things here for a better filename
-data_save_loc = f"/vast/sr6364/perturbed_organics/data/adaptive_main_eigval_N500/{args.MODEL_NAME}"
+data_save_loc = f"/vast/sr6364/perturbed_organics/data/adaptive_main_eigval_N1000/{args.MODEL_NAME}"
 extra_file_name = f"delta_{args.min_delta}_{args.delta_scale}"
 
 # Generate the filename based on selected parameters
