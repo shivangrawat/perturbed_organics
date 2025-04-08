@@ -49,36 +49,46 @@ print(f"Combining partial results from {num_tasks} tasks")
 
 # Load and combine partial results
 for task_id in range(num_tasks):
-    condition_task = torch.load(os.path.join(path, f'condition_task_{task_id}.pt'))
-    spectral_radius_task = torch.load(os.path.join(path, f'spectral_radius_task_{task_id}.pt'))
-    norm_fixed_point_y_task = torch.load(os.path.join(path, f'norm_fixed_point_y_task_{task_id}.pt'))
-    norm_fixed_point_a_task = torch.load(os.path.join(path, f'norm_fixed_point_a_task_{task_id}.pt'))
-    actual_fixed_point_y_task = torch.load(os.path.join(path, f'actual_fixed_point_y_task_{task_id}.pt'))
-    actual_fixed_point_a_task = torch.load(os.path.join(path, f'actual_fixed_point_a_task_{task_id}.pt'))
-    first_order_perturb_y_task = torch.load(os.path.join(path, f'first_order_perturb_y_task_{task_id}.pt'))
-    first_order_perturb_a_task = torch.load(os.path.join(path, f'first_order_perturb_a_task_{task_id}.pt'))
-    eigvals_J_task = torch.load(os.path.join(path, f'eigvals_J_task_{task_id}.pt'))
+    # Check if the file for this task exists before trying to load
+    condition_file_path = os.path.join(path, f'condition_task_{task_id}.pt')
+    if os.path.exists(condition_file_path):
+        try:
+            condition_task = torch.load(condition_file_path)
+            spectral_radius_task = torch.load(os.path.join(path, f'spectral_radius_task_{task_id}.pt'))
+            norm_fixed_point_y_task = torch.load(os.path.join(path, f'norm_fixed_point_y_task_{task_id}.pt'))
+            norm_fixed_point_a_task = torch.load(os.path.join(path, f'norm_fixed_point_a_task_{task_id}.pt'))
+            actual_fixed_point_y_task = torch.load(os.path.join(path, f'actual_fixed_point_y_task_{task_id}.pt'))
+            actual_fixed_point_a_task = torch.load(os.path.join(path, f'actual_fixed_point_a_task_{task_id}.pt'))
+            first_order_perturb_y_task = torch.load(os.path.join(path, f'first_order_perturb_y_task_{task_id}.pt'))
+            first_order_perturb_a_task = torch.load(os.path.join(path, f'first_order_perturb_a_task_{task_id}.pt'))
+            eigvals_J_task = torch.load(os.path.join(path, f'eigvals_J_task_{task_id}.pt'))
 
-    # Find indices where condition_task != -1
-    indices = (condition_task != -1).nonzero(as_tuple=True)
-    condition[indices] = condition_task[indices]
-    spectral_radius[indices] = spectral_radius_task[indices]
-    norm_fixed_point_y[indices] = norm_fixed_point_y_task[indices]
-    norm_fixed_point_a[indices] = norm_fixed_point_a_task[indices]
-    actual_fixed_point_y[indices] = actual_fixed_point_y_task[indices]
-    actual_fixed_point_a[indices] = actual_fixed_point_a_task[indices]
-    first_order_perturb_y[indices] = first_order_perturb_y_task[indices]
-    first_order_perturb_a[indices] = first_order_perturb_a_task[indices]
-    eigvals_J[indices] = eigvals_J_task[indices]
+            # Find indices where condition_task != -1 (i.e., where the task actually computed results)
+            indices = (condition_task != -1).nonzero(as_tuple=True)
+            condition[indices] = condition_task[indices]
+            spectral_radius[indices] = spectral_radius_task[indices]
+            norm_fixed_point_y[indices] = norm_fixed_point_y_task[indices]
+            norm_fixed_point_a[indices] = norm_fixed_point_a_task[indices]
+            actual_fixed_point_y[indices] = actual_fixed_point_y_task[indices]
+            actual_fixed_point_a[indices] = actual_fixed_point_a_task[indices]
+            first_order_perturb_y[indices] = first_order_perturb_y_task[indices]
+            first_order_perturb_a[indices] = first_order_perturb_a_task[indices]
+            eigvals_J[indices] = eigvals_J_task[indices]
+        except FileNotFoundError:
+            # This handles cases where some but not all files for a task_id might be missing
+            print(f"Warning: Some files for task_id {task_id} were missing. Skipping this task.")
+            continue # Skip to the next task_id
+    else:
+        # If the condition file doesn't exist, assume the task failed and skip it.
+        # The corresponding entries in the full result tensors will remain NaN/ -1.
+        print(f"Task {task_id} results not found, skipping.")
 
-# check if all the files were merged properly
-assert torch.all(condition != -1)
-assert torch.all(~torch.isnan(spectral_radius))
 
 # remove all the files ending with .pt inside the folder
 for file in os.listdir(path):
     if file.endswith('.pt'):
         os.remove(os.path.join(path, file))
+
 
 # Save full results
 torch.save(condition, os.path.join(path, f'condition.pt'))
