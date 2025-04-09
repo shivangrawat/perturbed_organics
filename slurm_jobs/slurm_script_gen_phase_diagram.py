@@ -4,8 +4,8 @@ import os
 
 # Define default parameters
 default_params = {
-    # "MODEL_NAME": "localized",
-    'MODEL_NAME': 'delocalized',
+    "MODEL_NAME": "localized",
+    # 'MODEL_NAME': 'delocalized',
     # 'MODEL_NAME': 'random',
     # 'MODEL_NAME': 'gaussian',
     # 'MATRIX_TYPE': 'goe',
@@ -63,7 +63,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 
 ##### Change things here for a better filename
-data_save_loc = f"/scratch/sr6364/perturbed_organics/data/adaptive_phase_diagram_100/{args.MODEL_NAME}"
+data_save_loc = f"/scratch/sr6364/perturbed_organics/data/adaptive_phase_diagram_100_large_delta/{args.MODEL_NAME}"
 # extra_file_name = f"delta_{args.min_delta}"
 extra_file_name = f"phase_diagram_{args.delta_scale}"
 

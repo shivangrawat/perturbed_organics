@@ -5,8 +5,8 @@ import os
 
 # Define default parameters
 default_params = {
-    # "MODEL_NAME": "localized",
-    'MODEL_NAME': 'delocalized',
+    "MODEL_NAME": "localized",
+    # 'MODEL_NAME': 'delocalized',
     # 'MODEL_NAME': 'random',
     # 'MODEL_NAME': 'gaussian',
     # 'MATRIX_TYPE': 'goe',
@@ -24,18 +24,18 @@ default_params = {
     "b1": 1.0,
     "tauA": 0.002,
     "tauY": 0.002,
-    "num_trials": 10000,
+    "num_trials": 1000,
     "num_delta": 1,
     "num_input": 200,
-    "min_delta": 0.25,
+    "min_delta": 0.4,
     "max_delta": 5.0,
     "min_input": 0.01,
     "max_input": 1.0,
     "NUM_TASKS": 100,
     "JOB_NAME": "param_scan",
-    "TIME": "5:00:00",
+    "TIME": "1:00:00",
     "CPUS": 4,
-    "MEMORY": "16GB",
+    "MEMORY": "8GB",
     "EMAIL": "sr6364@nyu.edu",
     "SCRIPT_NAME": "scan_stable_adaptive.py",
 }
@@ -64,7 +64,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 
 ##### Change things here for a better filename
-data_save_loc = f"/vast/sr6364/perturbed_organics/data/adaptive_main_double_main_fig/{args.MODEL_NAME}"
+data_save_loc = f"/vast/sr6364/perturbed_organics/data/adaptive_main_double/{args.MODEL_NAME}"
 extra_file_name = f"delta_{args.min_delta}_{args.delta_scale}"
 
 # Generate the filename based on selected parameters
