@@ -2,10 +2,15 @@
 import argparse
 import os
 
+# model_type = ""
+# model_type = "_rectified"
+model_type = "_rectified_recurrence"
+
+
 # Define default parameters
 default_params = {
-    "MODEL_NAME": "localized",
-    # 'MODEL_NAME': 'delocalized',
+    # "MODEL_NAME": "localized",
+    'MODEL_NAME': 'delocalized',
     # 'MODEL_NAME': 'random',
     # 'MODEL_NAME': 'gaussian',
     # 'MATRIX_TYPE': 'goe',
@@ -36,7 +41,7 @@ default_params = {
     "CPUS": 4,
     "MEMORY": "16GB",
     "EMAIL": "sr6364@nyu.edu",
-    "SCRIPT_NAME": "scan_stable_adaptive.py",
+    "SCRIPT_NAME": f"scan_stable_adaptive{model_type}.py",
 }
 
 # Set up argument parser
@@ -63,9 +68,9 @@ os.makedirs(output_dir, exist_ok=True)
 
 
 ##### Change things here for a better filename
-data_save_loc = f"/scratch/sr6364/perturbed_organics/data/adaptive_phase_diagram_100_large_delta/{args.MODEL_NAME}"
+data_save_loc = f"/scratch/sr6364/perturbed_organics/data/adaptive_phase_diagram_100_large_delta{model_type}/{args.MODEL_NAME}"
 # extra_file_name = f"delta_{args.min_delta}"
-extra_file_name = f"phase_diagram_{args.delta_scale}"
+extra_file_name = f"phase_diagram_{args.delta_scale}{model_type}"
 
 # Generate the filename based on selected parameters
 filename = os.path.join(
