@@ -14,10 +14,10 @@ default_params = {
     # 'MATRIX_TYPE': 'power_law',
     # "initial_type": "norm",
     "initial_type": "first_order",
-    "delta_scale": "log-scale",
-    # "delta_scale": "linear",
-    "N": 100,
-    "s": 100,
+    # "delta_scale": "log-scale",
+    "delta_scale": "linear",
+    "N": 2000,
+    "s": 2000,
     "mu": 0.0,
     "sigma": 0.1,
     "b0": 1.0,
@@ -27,15 +27,15 @@ default_params = {
     "num_trials": 50000,
     "num_delta": 1,
     "num_input": 1,
-    "min_delta": 0.55,
+    "min_delta": 0.2,
     "max_delta": 5.0,
     "min_input": 0.01,
     "max_input": 1.0,
     "NUM_TASKS": 100,
     "JOB_NAME": "param_scan",
-    "TIME": "1:00:00",
+    "TIME": "10:00:00",
     "CPUS": 4,
-    "MEMORY": "8GB",
+    "MEMORY": "16GB",
     "EMAIL": "sr6364@nyu.edu",
     "SCRIPT_NAME": "scan_stable_adaptive.py",
 }
@@ -64,7 +64,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 
 ##### Change things here for a better filename
-data_save_loc = f"/vast/sr6364/perturbed_organics/data/adaptive_main_eigval/{args.MODEL_NAME}"
+data_save_loc = f"/scratch/sr6364/perturbed_organics/data/adaptive_main_eigval_N{args.N}_z_{args.min_input}/{args.MODEL_NAME}"
 extra_file_name = f"delta_{args.min_delta}_{args.delta_scale}"
 
 # Generate the filename based on selected parameters
