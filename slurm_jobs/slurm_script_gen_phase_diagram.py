@@ -2,9 +2,9 @@
 import argparse
 import os
 
-# model_type = ""
+model_type = ""
 # model_type = "_rectified"
-model_type = "_rectified_recurrence"
+# model_type = "_rectified_recurrence"
 
 
 # Define default parameters
@@ -22,7 +22,7 @@ default_params = {
     # "delta_scale": "linear",
     "N": 100,
     "s": 100,
-    "mu": 0.0,
+    "mu": 0.1,
     "sigma": 0.1,
     "b0": 1.0,
     "b1": 1.0,
