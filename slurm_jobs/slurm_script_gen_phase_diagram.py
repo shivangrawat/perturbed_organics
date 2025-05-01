@@ -9,8 +9,8 @@ model_type = ""
 
 # Define default parameters
 default_params = {
-    # "MODEL_NAME": "localized",
-    'MODEL_NAME': 'delocalized',
+    "MODEL_NAME": "localized",
+    # 'MODEL_NAME': 'delocalized',
     # 'MODEL_NAME': 'random',
     # 'MODEL_NAME': 'gaussian',
     # 'MATRIX_TYPE': 'goe',
@@ -22,7 +22,7 @@ default_params = {
     # "delta_scale": "linear",
     "N": 100,
     "s": 100,
-    "mu": 0.1,
+    "mu": 0.25,
     "sigma": 0.1,
     "b0": 1.0,
     "b1": 1.0,
