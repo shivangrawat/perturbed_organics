@@ -168,6 +168,7 @@ cython_debug/
 **/*.out
 **/*.svg
 **/*.png
+!figures/github_image.png
 **/*.eps
 **/*.jpg
 **/*.jpeg
