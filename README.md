@@ -1,12 +1,12 @@
 # Stabilization of recurrent neural networks through divisive normalization
 
-This repository contains code associated with our paper.
-
-<!-- ![](./figures/readme.svg){width="200px"} -->
 <div style="text-align: center;">
-<img src="./figures/github_image.svg" alt="Description" width="800px">
+<img src="./figures/github_image.png" alt="Description" width="800px">
 </div>
 
+## Overview
+
+Stability is a fundamental requirement for both biological and engineered neural circuits, yet it is surprisingly difficult to guarantee in the presence of recurrent interactions. Standard linear dynamical models of recurrent networks are unreasonably sensitive to the precise values of the synaptic weights, since stability requires all eigenvalues of the recurrent matrix to lie within the unit circle. Here we demonstrate, both theoretically and numerically, that an arbitrary recurrent neural network can remain stable even when its spectral radius exceeds 1, provided it incorporates divisive normalization, a dynamical neural operation that suppresses the responses of individual neurons. Sufficiently strong recurrent weights lead to instability, but the approach to the unstable phase is preceded by a regime of critical slowing down, a well-known early warning signal for loss of stability. Remarkably, the onset of critical slowing down coincides with the breakdown of normalization, which we predict analytically as a function of the synaptic strength and the magnitude of the external input. Our findings suggest that the widespread implementation of normalization across neural systems may derive not only from its computational role, but also to enhance dynamical stability.
 
 ## Installation
 
@@ -14,7 +14,7 @@ Follow these steps:
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/martiniani-lab/perturbed_organics.git
+    git clone https://github.com/shivangrawat/perturbed_organics.git
     cd perturbed_organics
     ```
 2. Add the current directory to your Python path:
@@ -22,84 +22,23 @@ Follow these steps:
     export PYTHONPATH=$(pwd):$PYTHONPATH
     ```
 
-## Example
-A minimal example of PyTorch code to implement ORGaNICs is shown below,
-```python
-import torch
-from torch import nn
-import torch.nn.functional as F
+## Repository Structure
 
+The repository is organized as follows:
 
-class rnnCell(nn.Module):
-    def __init__(
-        self,
-        input_size: int,
-        hidden_size: int,
-        Wr_identity=False,
-    ):
-        super(rnnCell, self).__init__()
+* `perturbed_organics/`: Main package directory.
+    * `model/ORGaNICs_models/`: Contains the core implementation of the ORGaNICs models, such as `ORGaNICs.py`, `ORGaNICs2D.py`, and `ORGaNICs3D.py`.
+    * `simulation_scripts/`: Scripts used to run the simulations presented in the paper, for example, `scan_stable.py` and `scan_stable_adaptive.py`.
+    * `spectrum_general/`: Python modules for spectral analysis of matrices and dynamical systems.
+    * `utils/`: Utility functions and classes supporting the simulations and analyses.
+* `examples/`: Jupyter notebooks used to generate figures and perform analyses for the paper. This includes notebooks like `phase_eigval_norm_delocalized.ipynb`, `trajectories.ipynb`, and `eigval_histogram.ipynb`.
+* `slurm_jobs/`: Scripts for generating and managing SLURM job submissions for running experiments on a high-performance computing cluster (e.g., `slurm_script_gen_phase_diagram.py`).
 
-        # Define the parameters for the weight matrices
-        self.Wzx = nn.Parameter(torch.randn((hidden_size, input_size)))
-        self.Wr = nn.Parameter(torch.eye(hidden_size), requires_grad=not Wr_identity)
-        self.log_Way = nn.Parameter(torch.zeros((hidden_size, hidden_size)))
+## Reference and Citation
 
-        # Define independent parameters for gain
-        self.b0 = nn.Parameter(torch.rand(hidden_size))
-        self.b1 = nn.Parameter(torch.rand(hidden_size))
-
-        # Define the other parameters
-        self.dt_tau = 0.001 * nn.Parameter(torch.ones((hidden_size)), requires_grad=False)
-        self.sigma = nn.Parameter(torch.ones((hidden_size)), requires_grad=False)
-
-    def Way(self):
-        return self.log_Way.exp()
-
-    def forward(self, x, y, a):
-        z = F.relu(F.linear(x, self.Wzx, bias=None))
-        y_hat = F.relu(F.linear(y, self.Wr, bias=None))
-
-        y_new = y + self.dt_tau * (- y + self.b1 * z + (1 - torch.sqrt(F.relu(a))) * y_hat)
-        a_new = a + self.dt_tau * (- a + self.sigma**2 * self.b0**2 + F.linear(F.relu(y) ** 2 * F.relu(a), self.Way(), bias=None))
-
-        return y_new, a_new
-```
-
-## ORGaNICs implementation
-The classes for feedforward and convolutional implementation of ORGaNICs can be found at,
-```bash
-    models/fixed_point/
-```
-The classes for ORGaNICs implemented as a recurrent neural network (RNN), defined by the explicit Euler discretization of the underlying system of nonlinear differential equations, can be found at,
-```bash
-    models/dynamical/
-```
-Implementation of the time-continuous dynamical system of ORGaNICs can be found at,
-```bash
-    models/ORGaNICs_model/
-```
-
-## Experiment code
-PyTorch Lightning code for fitting ORGaNICs on static MNIST dataset can be found at,
-```bash
-    training_scripts/MNIST/
-```
-PyTorch Lightning code for fitting ORGaNICs on sequential MNIST dataset can be found at,
-```bash
-    training_scripts/sMNIST/
-```
-
-## Training/inference code
-Code to generate all the figures in the paper can be found at,
-```bash
-    examples/
-```
-
-<!-- ## Reference and Citation
-
-> *Unconditional stability of a recurrent neural circuit implementing divisive normalization*
+> *Stabilization of recurrent neural networks through divisive normalization*
 > 
-> Shivang Rawat, David J. Heeger and Stefano Martiniani
+> Flaviano Morone*, Shivang Rawat*, David J. Heeger and Stefano Martiniani
 >
 > https://proceedings.neurips.cc/paper_files/paper/2024/file/1abed6ee581b9ceb4e2ddf37822c7fcb-Paper-Conference.pdf
 
@@ -111,5 +50,5 @@ Code to generate all the figures in the paper can be found at,
   volume={37},
   pages={14712--14750},
   year={2025}
-} -->
+}
 ```
