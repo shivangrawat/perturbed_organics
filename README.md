@@ -40,15 +40,15 @@ The repository is organized as follows:
 > 
 > Flaviano Morone*, Shivang Rawat*, David J. Heeger and Stefano Martiniani
 >
-> https://proceedings.neurips.cc/paper_files/paper/2024/file/1abed6ee581b9ceb4e2ddf37822c7fcb-Paper-Conference.pdf
+> https://www.biorxiv.org/content/10.1101/2025.05.16.654567v1
 
 ```bibtex
-@article{rawat2025unconditional,
-  title={Unconditional stability of a recurrent neural circuit implementing divisive normalization},
-  author={Rawat, Shivang and Heeger, David and Martiniani, Stefano},
-  journal={Advances in Neural Information Processing Systems},
-  volume={37},
-  pages={14712--14750},
-  year={2025}
+@article{morone2025stabilization,
+  title={Stabilization of recurrent neural networks through divisive normalization},
+  author={Morone, Flaviano and Rawat, Shivang and Heeger, David J and Martiniani, Stefano},
+  journal={bioRxiv},
+  pages={2025--05},
+  year={2025},
+  publisher={Cold Spring Harbor Laboratory}
 }
 ```
